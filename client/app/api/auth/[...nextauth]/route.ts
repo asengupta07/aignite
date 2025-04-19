@@ -36,9 +36,9 @@ const handler = NextAuth({
           await connectToDatabase();
 
           const githubProfile = profile as GithubProfile;
-          const githubId = githubProfile.id.toString();
+          const github_id = githubProfile.id.toString();
 
-          const existingUser = await User.findOne({ githubId });
+          const existingUser = await User.findOne({ github_id: github_id });
 
           if (!user.email) {
             console.error("No email provided by GitHub");
@@ -47,7 +47,7 @@ const handler = NextAuth({
 
           if (!existingUser) {
             await User.create({
-              githubId,
+              github_id: github_id,
               name: user.name,
               email: user.email,
               image: user.image,
@@ -55,7 +55,7 @@ const handler = NextAuth({
             console.log("New user created:", user.email);
           } else {
             await User.findOneAndUpdate(
-              { githubId },
+              { github_id: github_id },
               {
                 name: user.name,
                 email: user.email,
@@ -79,7 +79,7 @@ const handler = NextAuth({
         session.accessToken = token.accessToken as string;
         const user = await User.findOne({ email: session.user.email });
         if (user) {
-          session.user.githubId = user.githubId;
+          session.user.github_id = user.github_id;
         }
       }
       return session;

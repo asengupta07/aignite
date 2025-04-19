@@ -62,7 +62,7 @@ function PendingApplications() {
     const fetchApplications = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/applications/${session?.user?.githubId}`
+          `http://localhost:8000/applications/${session?.user?.github_id}`
         );
         const data = await response.json();
         // Only show pending applications
@@ -78,7 +78,7 @@ function PendingApplications() {
       }
     };
 
-    if (session?.user?.githubId) {
+    if (session?.user?.github_id) {
       fetchApplications();
     }
   }, [session]);
@@ -116,7 +116,7 @@ function PendingApplications() {
 
       // Refresh applications
       const updatedResponse = await fetch(
-        `http://localhost:8000/applications/${session?.user?.githubId}`
+        `http://localhost:8000/applications/${session?.user?.github_id}`
       );
       const updatedData = await updatedResponse.json();
       // Only show pending applications
@@ -317,7 +317,7 @@ export function DevReports() {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/get-latest-dev-report/${session?.user?.githubId}`
+        `http://localhost:8000/get-latest-dev-report/${session?.user?.github_id}`
       );
       const data: DevReportResponse = await response.json();
       setReport(data.report);
@@ -329,7 +329,7 @@ export function DevReports() {
   };
 
   useEffect(() => {
-    if (session?.user?.githubId) {
+    if (session?.user?.github_id) {
       fetchDevReport();
     }
   }, [session]);
@@ -445,7 +445,7 @@ function OrganizationDashboard() {
     const fetchOrganization = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/get-organization/${session?.user?.githubId}`
+          `http://localhost:8000/get-organization/${session?.user?.github_id}`
         );
         const data = await response.json();
         setOrganization(data.organization);
@@ -456,7 +456,7 @@ function OrganizationDashboard() {
       }
     };
 
-    if (session?.user?.githubId) {
+    if (session?.user?.github_id) {
       fetchOrganization();
     }
   }, [session]);
@@ -477,7 +477,7 @@ function OrganizationDashboard() {
     );
   }
 
-  const isAdmin = session?.user?.githubId === organization.owner_id;
+  const isAdmin = session?.user?.github_id === organization.owner_id;
 
   return (
     <div className="max-h-[95dvh] overflow-hidden p-8">

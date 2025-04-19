@@ -24,7 +24,7 @@ export default function JoinOrganizationModal({
     setIsLoading(true);
 
     try {
-      if (!session?.user?.githubId) {
+      if (!session?.user?.github_id) {
         throw new Error("Please sign in to join an organization");
       }
 
@@ -34,7 +34,7 @@ export default function JoinOrganizationModal({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          github_id: session.user.githubId,
+          github_id: session.user.github_id,
           key: organizationKey,
           name: session.user.name,
           email: session.user.email,

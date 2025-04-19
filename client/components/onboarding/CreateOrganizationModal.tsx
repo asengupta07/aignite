@@ -44,7 +44,7 @@ export default function CreateOrganizationModal({
     setUploadProgress(null);
 
     try {
-      if (!session?.user?.githubId) {
+      if (!session?.user?.github_id) {
         throw new Error("Please sign in to create an organization");
       }
 
@@ -70,7 +70,7 @@ export default function CreateOrganizationModal({
           body: JSON.stringify({
             name,
             description,
-            owner_id: session.user.githubId,
+            owner_id: session.user.github_id,
             image_url: imageUrl,
           }),
         }
@@ -86,7 +86,7 @@ export default function CreateOrganizationModal({
       // Set GitHub URL if provided
       if (githubUrl) {
         const githubResponse = await fetch(
-          `http://localhost:8000/set-github/${session.user.githubId}`,
+          `http://localhost:8000/set-github/${session.user.github_id}`,
           {
             method: "POST",
             headers: {

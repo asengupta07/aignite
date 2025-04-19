@@ -81,11 +81,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const fetchOrganization = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/get-organization/${session?.user?.githubId}`
+          `http://localhost:8000/get-organization/${session?.user?.github_id}`
         );
         const data = await response.json();
         const organization: Organization = data.organization;
-        setIsOwner(session?.user?.githubId === organization.owner_id);
+        setIsOwner(session?.user?.github_id === organization.owner_id);
       } catch (error) {
         console.error("Error fetching organization:", error);
       } finally {
@@ -93,7 +93,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       }
     };
 
-    if (session?.user?.githubId) {
+    if (session?.user?.github_id) {
       fetchOrganization();
     }
   }, [session]);

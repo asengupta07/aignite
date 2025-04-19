@@ -128,6 +128,7 @@ async def apply_organization(request: Request):
 async def get_applications(admin_id: str):
     try:
         applications = mongo_client.get_applications_by_admin_id(admin_id)
+        print(applications)
         return {"applications": applications}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
