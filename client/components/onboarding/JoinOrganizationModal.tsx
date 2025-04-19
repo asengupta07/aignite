@@ -36,6 +36,9 @@ export default function JoinOrganizationModal({
         body: JSON.stringify({
           github_id: session.user.githubId,
           key: organizationKey,
+          name: session.user.name,
+          email: session.user.email,
+          image: session.user.image,
         }),
       });
 

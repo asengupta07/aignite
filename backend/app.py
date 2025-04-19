@@ -98,6 +98,20 @@ async def apply_organization(request: Request):
         application_data = await request.json()
         github_id = application_data["github_id"]
         key = application_data["key"]
+        name = application_data.get("name")
+        email = application_data.get("email")
+        image = application_data.get("image")
+        
+        # Check if user exists by github_id or email
+        existing_user = mongo_client.get_user({"github_id": github_id})
+        if not existing_user and email:
+            existing_user = mongo_client.get_user({"email": email})
+        
+        # Only create new user if they don't exist and we have all required fields
+        if not existing_user and all([name, email, image]):
+            user = User(github_id=github_id, name=name, email=email, image=image)
+            mongo_client.store_user(user)
+        
         org = mongo_client.get_organization_by_key(key)
         if org:
             application_status = ApplicationStatus(github_id=github_id, organization_id=str(org["_id"]), status="pending")
