@@ -183,15 +183,23 @@ class MongoProvider:
 
     def get_product_goals(self, org_id: str):
         """Get all product goals for an organization"""
-        goals = list(self.db["product_goals"].find({"organization_id": org_id}))
-        
-        # Convert ObjectId to string
-        for goal in goals:
-            goal["_id"] = str(goal["_id"])
-            if "created_at" in goal:
-                goal["created_at"] = goal["created_at"].isoformat()
-            if "due_date" in goal:
-                goal["due_date"] = goal["due_date"].isoformat()
-        
-        return goals
+        try:
+            goals = list(self.db["product_goals"].find({"organization_id": org_id}))
+            
+            # Convert ObjectId to string and format dates
+            for goal in goals:
+                goal["_id"] = str(goal["_id"])
+                if "created_at" in goal and goal["created_at"]:
+                    goal["created_at"] = goal["created_at"].isoformat()
+                if "due_date" in goal and goal["due_date"]:
+                    # Handle string dates that are already ISO format
+                    if isinstance(goal["due_date"], str):
+                        continue
+                    goal["due_date"] = goal["due_date"].isoformat()
+            
+            return goals
+            
+        except Exception as e:
+            print(f"Error getting product goals: {str(e)}")
+            return []
     

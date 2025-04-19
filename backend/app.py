@@ -179,11 +179,10 @@ async def get_dev_team(org_id: str):
     
 
 @app.post("/create-product-goals/{org_id}")
-async def create_product_goals(org_id: str, product_goal: ProductGoal):
+async def create_product_goals(org_id: str, product_goal: Request):
     try:
         # Validate the product goal data
-        product_goal_dict = product_goal.model_dump()
-        product_goal_dict["organization_id"] = org_id
+        product_goal_dict = await product_goal.json()
         
         mongo_client.store_product_goals(org_id, product_goal_dict)
         return {"message": "Product goals created successfully"}
@@ -191,9 +190,10 @@ async def create_product_goals(org_id: str, product_goal: ProductGoal):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.post("/get-product-goals/{org_id}")
+@app.get("/get-product-goals/{org_id}")
 async def get_product_goals(org_id: str):
     try:
+        print(org_id)
         product_goals = mongo_client.get_product_goals(org_id)
         return {"product_goals": product_goals}
     except Exception as e:

@@ -42,5 +42,4 @@ class ProductGoal(BaseModel):
     due_date: datetime
     assignee: str
     tags: list[str]
-    organization_id: str
     created_at: Optional[datetime] = None
