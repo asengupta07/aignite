@@ -2,12 +2,14 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from models.schema import Organization, OrganizationMember, User, ApplicationStatus
 from utils.mongo import MongoProvider
-from typing import Dict, List
 from cryptography.fernet import Fernet
-from bson import ObjectId
-import os
 from dotenv import load_dotenv
 import uvicorn
+import requests
+from datetime import datetime
+import datetime as dt
+from agents.dev_report import DevReportAgent
+
 load_dotenv()
 
 app = FastAPI()
@@ -34,6 +36,10 @@ async def get_organization(user_id: str):
         return {"organization": org}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+
 
 
 
@@ -142,6 +148,70 @@ async def get_organization_members(organization_id: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
+@app.get("/get-latest-dev-report/{user_id}")
+async def get_latest_dev_report(user_id: str):
+    try:
+        # Get organization for the user
+        org = mongo_client.get_organization_by_user_id(user_id)
+        if not org:
+            raise HTTPException(status_code=404, detail="User is not affiliated with any organization")
+            
+        # Check if we have a cached report for today
+        cached_report = mongo_client.get_todays_dev_report(str(org["_id"]))
+        if cached_report:
+            return {"report": cached_report["report"]}
+            
+        # Get GitHub URL from database
+        github_url = mongo_client.get_org_github_url(str(org["_id"]))
+        
+        # Extract owner and repo from GitHub URL
+        # URL format: https://github.com/owner/repo
+        parts = github_url.strip('/').split('/')
+        if len(parts) < 2:
+            raise HTTPException(status_code=400, detail="Invalid GitHub URL format")
+        owner, repo = parts[-2], parts[-1]
+        
+        # Get today's date range
+        today = datetime.now(dt.UTC)
+        start_time = datetime.combine(today, datetime.min.time())
+        end_time = datetime.combine(today, datetime.max.time())
+        
+        # Format dates for GitHub API
+        start_time_str = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_time_str = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        
+        # Get commits from GitHub API
+        headers = {
+            "Accept": "application/vnd.github+json"
+        }
+        
+        url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+        params = {
+            "since": start_time_str,
+            "until": end_time_str
+        }
+        
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to fetch commits from GitHub")
+            
+        commits = response.json()
+        commit_messages = [commit["commit"]["message"] for commit in commits]
+        
+        # Generate dev report
+        dev_report_agent = DevReportAgent()
+        report = dev_report_agent.generate_dev_report(commit_messages)
+        
+        # Cache the report
+        mongo_client.store_dev_report(str(org["_id"]), report)
+        
+        return {"report": report}
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

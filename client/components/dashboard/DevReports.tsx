@@ -5,14 +5,20 @@ import { useSession } from "next-auth/react";
 import { Code2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface DevReport {
-  report: string;
-  timestamp: string;
+interface ReportContent {
+  summary: string;
+  changes: string[];
+  issues: string[];
+  suggestions: string[];
+}
+
+interface DevReportResponse {
+  report: ReportContent;
 }
 
 export function DevReports() {
   const { data: session } = useSession();
-  const [report, setReport] = useState<DevReport | null>(null);
+  const [report, setReport] = useState<ReportContent | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchDevReport = async () => {
@@ -21,8 +27,8 @@ export function DevReports() {
       const response = await fetch(
         `http://localhost:8000/get-latest-dev-report/${session?.user?.githubId}`
       );
-      const data = await response.json();
-      setReport(data);
+      const data: DevReportResponse = await response.json();
+      setReport(data.report);
     } catch (error) {
       console.error("Error fetching dev report:", error);
     } finally {
@@ -57,18 +63,61 @@ export function DevReports() {
           <RefreshCw className="w-6 h-6 animate-spin text-zinc-400" />
         </div>
       ) : report ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* Summary */}
           <div className="flex items-start gap-3 p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
             <Code2 className="w-5 h-5 text-indigo-500 mt-1" />
             <div>
-              <p className="text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
-                {report.report}
-              </p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-                Last updated: {new Date(report.timestamp).toLocaleString()}
+              <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Summary
+              </h3>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                {report.summary}
               </p>
             </div>
           </div>
+
+          {/* Changes */}
+          {report.changes.length > 0 && (
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
+              <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Recent Changes
+              </h3>
+              <ul className="list-disc list-inside space-y-1 text-zinc-600 dark:text-zinc-400">
+                {report.changes.map((change, index) => (
+                  <li key={index}>{change}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Issues */}
+          {report.issues.length > 0 && (
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
+              <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Current Issues
+              </h3>
+              <ul className="list-disc list-inside space-y-1 text-zinc-600 dark:text-zinc-400">
+                {report.issues.map((issue, index) => (
+                  <li key={index}>{issue}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Suggestions */}
+          {report.suggestions.length > 0 && (
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
+              <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Suggestions
+              </h3>
+              <ul className="list-disc list-inside space-y-1 text-zinc-600 dark:text-zinc-400">
+                {report.suggestions.map((suggestion, index) => (
+                  <li key={index}>{suggestion}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       ) : (
         <p className="text-zinc-500 dark:text-zinc-400">

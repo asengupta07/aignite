@@ -66,3 +66,5 @@ Content-Type: application/json
 POST http://localhost:8000/create-organization-member
 Content-Type: application/json
 
+
+GET http://localhost:8000/get-latest-dev-report/45076467

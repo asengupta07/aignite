@@ -27,3 +27,8 @@ class ApplicationStatus(BaseModel):
 class OrganizationGitHub(BaseModel):
     organization_id: str
     github_url: str
+
+class DevReport(BaseModel):
+    organization_id: str
+    date: str
+    report: dict

@@ -3,6 +3,7 @@ from bson.objectid import ObjectId
 import os
 from dotenv import load_dotenv
 from models.schema import Organization, OrganizationMember, User, ApplicationStatus
+from datetime import datetime
 
 load_dotenv()
 
@@ -109,10 +110,31 @@ class MongoProvider:
                 
         return None
     
+    def get_org_github_url(self, org_id: str):
+        github_info = self.db["organization_githubs"].find_one({"organization_id": org_id})
+        if not github_info:
+            raise ValueError(f"No GitHub URL found for organization with ID {org_id}")
+        return github_info["github_url"]
+    
     def set_org_github(self, admin_id: str, github_url: str):
         organization = self.db["organizations"].find_one({"owner_id": admin_id})
         if not organization:
             raise ValueError(f"No organization found for admin with ID {admin_id}")
         org_id = str(organization["_id"])
         self.db["organization_githubs"].insert_one({"organization_id": org_id, "github_url": github_url})
+
+    def get_todays_dev_report(self, organization_id: str):
+        today = datetime.now().strftime("%Y-%m-%d")
+        return self.db["dev_reports"].find_one({
+            "organization_id": organization_id,
+            "date": today
+        })
+
+    def store_dev_report(self, organization_id: str, report: dict):
+        today = datetime.now().strftime("%Y-%m-%d")
+        self.db["dev_reports"].update_one(
+            {"organization_id": organization_id, "date": today},
+            {"$set": {"report": report}},
+            upsert=True
+        )
     
