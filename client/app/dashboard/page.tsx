@@ -40,13 +40,13 @@ export function BentoBox({ children, className = "" }: BentoBoxProps) {
 }
 
 interface Application {
-  _id: string
-  github_id: string
-  organization_id: string
-  status: string
-  role?: string
-  user_name: string
-  user_image: string
+  _id: string;
+  github_id: string;
+  organization_id: string;
+  status: string;
+  role?: string;
+  user_name: string;
+  user_image: string;
 }
 
 // Update the PendingApplications component to include role selection
@@ -159,8 +159,12 @@ function PendingApplications() {
                   />
                 </div>
                 <div>
-                  <p className="font-medium text-zinc-700 dark:text-zinc-300">{application.user_name}</p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">GitHub ID: {application.github_id}</p>
+                  <p className="font-medium text-zinc-700 dark:text-zinc-300">
+                    {application.user_name}
+                  </p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    GitHub ID: {application.github_id}
+                  </p>
                 </div>
               </div>
 
