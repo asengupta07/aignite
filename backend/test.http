@@ -70,3 +70,5 @@ Content-Type: application/json
 GET http://localhost:8000/get-latest-dev-report/45076467
 
 GET http://localhost:8000/applications/45076467
+
+GET http://localhost:8000/get-dev-team/6803fa23fe30dd6399f4246d

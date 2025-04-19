@@ -169,7 +169,7 @@ async def get_organization_members(organization_id: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.post("/get-dev-team/{org_id}")
+@app.get("/get-dev-team/{org_id}")
 async def get_dev_team(org_id: str):
     try:
         dev_team = mongo_client.get_dev_team(org_id)
