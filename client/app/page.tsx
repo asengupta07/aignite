@@ -15,17 +15,18 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
 
 export default function LandingPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (session?.accessToken) {
+      console.log("GitHub OAuth Token:", session.accessToken);
+    }
+  }, [session]);
 
   if (!mounted) return null;
 

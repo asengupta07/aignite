@@ -16,9 +16,20 @@ const handler = NextAuth({
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "repo read:org user:email read:user",
+        },
+      },
     }),
   ],
   callbacks: {
+    async jwt({ token, account }) {
+      if (account) {
+        token.accessToken = account.access_token as string;
+      }
+      return token;
+    },
     async signIn({ user, account, profile }) {
       if (account?.provider === "github") {
         try {
@@ -28,6 +39,11 @@ const handler = NextAuth({
           const githubId = githubProfile.id.toString();
 
           const existingUser = await User.findOne({ githubId });
+
+          if (!user.email) {
+            console.error("No email provided by GitHub");
+            return false;
+          }
 
           if (!existingUser) {
             await User.create({
@@ -57,9 +73,14 @@ const handler = NextAuth({
       }
       return true;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       if (session?.user) {
         session.user.id = token.sub!;
+        session.accessToken = token.accessToken as string;
+        const user = await User.findOne({ email: session.user.email });
+        if (user) {
+          session.user.githubId = user.githubId;
+        }
       }
       return session;
     },

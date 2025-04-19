@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 interface JoinOrganizationModalProps {
   isOpen: boolean;
@@ -12,13 +13,46 @@ export default function JoinOrganizationModal({
   isOpen,
   onClose,
 }: JoinOrganizationModalProps) {
+  const { data: session } = useSession();
   const [organizationKey, setOrganizationKey] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement join organization logic
-    console.log("Joining organization with key:", organizationKey);
-    onClose();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      if (!session?.user?.githubId) {
+        throw new Error("Please sign in to join an organization");
+      }
+
+      const response = await fetch("http://localhost:8000/apply-organization", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          github_id: session.user.githubId,
+          key: organizationKey,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to apply to organization");
+      }
+
+      const data = await response.json();
+      console.log("Application submitted successfully:", data);
+      onClose();
+    } catch (error) {
+      console.error("Error applying to organization:", error);
+      setError(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -39,6 +73,16 @@ export default function JoinOrganizationModal({
           existing organization.
         </p>
 
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md"
+          >
+            {error}
+          </motion.div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
@@ -55,6 +99,7 @@ export default function JoinOrganizationModal({
               className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
               placeholder="Enter organization key"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -65,16 +110,18 @@ export default function JoinOrganizationModal({
               className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 transition-all duration-300"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              disabled={isLoading}
             >
               Cancel
             </motion.button>
             <motion.button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              disabled={isLoading}
             >
-              Join Organization
+              {isLoading ? "Joining..." : "Join Organization"}
             </motion.button>
           </div>
         </form>

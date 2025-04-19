@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
-const MONGODB_DB = "aignite";
+const MONGODB_DB = "intersect";
 
 if (!MONGODB_URI) {
   throw new Error(

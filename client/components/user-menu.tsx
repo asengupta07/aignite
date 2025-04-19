@@ -43,7 +43,7 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem
           className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
-          onClick={() => signOut()}
+          onClick={() => signOut({ callbackUrl: "/" })}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Sign out
