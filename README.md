@@ -1,1 +1,1 @@
-# aignite
+# IntersectAI
