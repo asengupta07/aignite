@@ -27,9 +27,13 @@ class MongoProvider:
             return []
         organization_id = str(organization["_id"])
         applications = list(self.db["application_statuses"].find({"organization_id": organization_id}))
-        # Convert ObjectId to string for each document
+        # Convert ObjectId to string for each document and add user details
         for app in applications:
             app["_id"] = str(app["_id"])
+            user = self.db["users"].find_one({"github_id": app["github_id"]})
+            if user:
+                app["user_name"] = user["name"]
+                app["user_image"] = user["image"]
         return applications
 
     def get_organization_by_key(self, key: str):

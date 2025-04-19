@@ -36,11 +36,17 @@ async def get_organization(user_id: str):
         return {"organization": org}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
 
 
-
-
+@app.get("/get-github/{user_id}")
+async def get_github(user_id: str):
+    try:
+        organization = mongo_client.get_organization_by_user_id(user_id)
+        organization_id = organization["_id"]
+        github_url = mongo_client.get_org_github_url(organization_id)
+        return {"github_url": github_url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/set-github/{admin_id}")

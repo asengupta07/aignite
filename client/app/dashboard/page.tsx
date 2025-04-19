@@ -41,6 +41,8 @@ interface Application {
   organization_id: string
   status: string
   role?: string
+  user_name: string
+  user_image: string
 }
 
 // Update the PendingApplications component to include role selection
@@ -118,10 +120,16 @@ function PendingApplications() {
           {applications.map((application) => (
             <div key={application._id} className="flex flex-col p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
               <div className="flex items-center gap-3 mb-3">
-                <Clock className="w-5 h-5 text-yellow-500" />
+                <div className="w-10 h-10 rounded-full overflow-hidden">
+                  <img
+                    src={application.user_image}
+                    alt={application.user_name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <div>
-                  <p className="font-medium text-zinc-700 dark:text-zinc-300">GitHub ID: {application.github_id}</p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Status: {application.status}</p>
+                  <p className="font-medium text-zinc-700 dark:text-zinc-300">{application.user_name}</p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">GitHub ID: {application.github_id}</p>
                 </div>
               </div>
 
@@ -132,11 +140,9 @@ function PendingApplications() {
                   value={selectedRoles[application._id] || "developer"}
                   onChange={(e) => handleRoleChange(application._id, e.target.value)}
                 >
-                  <option value="developer">Developer</option>
+                  <option value="developer">Dev Team</option>
                   <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
-                  <option value="designer">Designer</option>
-                  <option value="tester">Tester</option>
+                  <option value="product">Product Team</option>
                 </select>
               </div>
 
