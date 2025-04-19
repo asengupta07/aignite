@@ -27,6 +27,15 @@ async def root():
     return {"message": "Welcome to the API"}
 
 
+@app.get("/get-organization/{user_id}")
+async def get_organization(user_id: str):
+    try:
+        org = mongo_client.get_organization_by_user_id(user_id)
+        return {"organization": org}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 @app.post("/set-github/{admin_id}")
 async def set_org_github(admin_id: str, request: Request):
