@@ -92,6 +92,10 @@ class MongoProvider:
             raise ValueError(f"Organization with ID {org_id} not found")
         return organization.get("key")
     
-    def set_org_github(self, org_id: str, github_url: str):
+    def set_org_github(self, admin_id: str, github_url: str):
+        organization = self.db["organizations"].find_one({"owner_id": admin_id})
+        if not organization:
+            raise ValueError(f"No organization found for admin with ID {admin_id}")
+        org_id = str(organization["_id"])
         self.db["organization_githubs"].insert_one({"organization_id": org_id, "github_url": github_url})
     

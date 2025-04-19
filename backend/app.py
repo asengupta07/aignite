@@ -28,11 +28,11 @@ async def root():
 
 
 
-@app.post("/set-github/{org_id}")
-async def set_org_github(org_id: str, request: Request):
+@app.post("/set-github/{admin_id}")
+async def set_org_github(admin_id: str, request: Request):
     try:
         github_url = (await request.json())["github_url"]
-        mongo_client.set_org_github(org_id, github_url)
+        mongo_client.set_org_github(admin_id, github_url)
         return {"message": "Organization GitHub set successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
