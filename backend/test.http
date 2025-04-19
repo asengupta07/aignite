@@ -1,0 +1,68 @@
+### 1. Create a new user
+POST http://localhost:8000/create-user
+Content-Type: application/json
+
+{
+    "github_id": "123456789",
+    "name": "Test User",
+    "email": "test@test.com",
+    "image": "https://github.com/avatar.png"
+}
+
+### 2. Create an organization (using the github_id from step 1 as owner)
+POST http://localhost:8000/create-organization
+Content-Type: application/json
+
+{
+    "name": "Test Organization",
+    "description": "This is a test organization",
+    "owner_id": "123456789"
+}
+
+### 3. Create another user to test application flow
+POST http://localhost:8000/create-user
+Content-Type: application/json
+
+{
+    "github_id": "987654321",
+    "name": "Test Employee",
+    "email": "employee@test.com",
+    "image": "https://github.com/avatar2.png"
+}
+
+### 4. Apply to organization (using the key from step 2 response)
+POST http://localhost:8000/apply-organization
+Content-Type: application/json
+
+{
+    "github_id": "987654321",
+    "key": "PN4YYEY8t-yDYd_2Bg847bm0ZQzOh4ImLanxqfxjpB0="
+}
+
+### 5. Get applications for admin (using owner's github_id)
+GET http://localhost:8000/applications/123456789
+
+### 6. Approve the application
+POST http://localhost:8000/update-application-status
+Content-Type: application/json
+
+{
+    "application_id": "68038a4736419533e862671d",
+    "status": "approved",
+    "role": "developer"
+}
+
+### 7. Get organization members
+GET http://localhost:8000/organizations/68038a2736419533e862671b/members
+
+### 8. Set organization GitHub URL
+POST http://localhost:8000/set-github/68038a2736419533e862671b
+Content-Type: application/json
+
+{
+    "github_url": "https://github.com/test-org"
+}
+
+POST http://localhost:8000/create-organization-member
+Content-Type: application/json
+
