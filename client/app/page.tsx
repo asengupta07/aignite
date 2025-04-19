@@ -1,6 +1,8 @@
 "use client";
 
 import type React from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 import { useEffect, useState } from "react";
 import {
@@ -16,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 
 export default function LandingPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
@@ -70,7 +74,16 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <Button className="gradient-button rounded-full text-zinc-100 dark:text-zinc-900 px-8 py-6 text-lg transition-all duration-300">
+            <Button
+              onClick={() => {
+                if (!session) {
+                  router.push("/api/auth/signin/github");
+                } else {
+                  router.push("/onboarding");
+                }
+              }}
+              className="gradient-button rounded-full text-zinc-100 dark:text-zinc-900 px-8 py-6 text-lg transition-all duration-300"
+            >
               Get Started <ArrowRight className="ml-2" />
             </Button>
           </motion.div>
