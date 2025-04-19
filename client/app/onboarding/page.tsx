@@ -1,15 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import JoinOrganizationModal from "@/components/onboarding/JoinOrganizationModal";
 import CreateOrganizationModal from "@/components/onboarding/CreateOrganizationModal";
 
 export default function OnboardingPage() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [checkingOrg, setCheckingOrg] = useState(true);
   const { theme } = useTheme();
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkOrganization = async () => {
+      if (session?.user?.githubId) {
+        try {
+          const response = await fetch(
+            `http://localhost:8000/get-organization/${session.user.githubId}`
+          );
+          const data = await response.json();
+          if (data.organization) {
+            router.push("/dashboard");
+          }
+        } catch (error) {
+          console.error("Error checking organization:", error);
+        } finally {
+          setCheckingOrg(false);
+        }
+      } else {
+        setCheckingOrg(false);
+      }
+    };
+
+    checkOrganization();
+  }, [session, router]);
+
+  if (checkingOrg) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-100 to-zinc-200 dark:from-black dark:to-zinc-900 text-zinc-700 dark:text-zinc-300 transition-colors duration-300">

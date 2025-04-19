@@ -20,6 +20,7 @@ export default function LandingPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [checkingOrg, setCheckingOrg] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -28,7 +29,33 @@ export default function LandingPage() {
     }
   }, [session]);
 
-  if (!mounted) return null;
+  useEffect(() => {
+    const checkOrganization = async () => {
+      if (session?.user?.githubId) {
+        try {
+          const response = await fetch(
+            `http://localhost:8000/get-organization/${session.user.githubId}`
+          );
+          const data = await response.json();
+          if (data.organization) {
+            router.push("/dashboard");
+          }
+        } catch (error) {
+          console.error("Error checking organization:", error);
+        } finally {
+          setCheckingOrg(false);
+        }
+      } else {
+        setCheckingOrg(false);
+      }
+    };
+
+    if (mounted) {
+      checkOrganization();
+    }
+  }, [session, mounted, router]);
+
+  if (!mounted || checkingOrg) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-100 to-zinc-200 dark:from-black dark:to-zinc-900 text-zinc-700 dark:text-zinc-300 transition-colors duration-300">
