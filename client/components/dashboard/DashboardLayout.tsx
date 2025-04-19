@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Target } from "lucide-react";
+import { Home, Target, BarChart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface Organization {
   _id: string;
   owner_id: string;
 }
 
-const ownerSidebarItems = [
+const adminSidebarItems = [
   {
     name: "Home",
     icon: Home,
@@ -21,6 +22,11 @@ const ownerSidebarItems = [
     name: "Set Goals",
     icon: Target,
     href: "/dashboard/set-goals",
+  },
+  {
+    name: "View Progress",
+    icon: BarChart,
+    href: "/dashboard/view-progress",
   },
 ];
 
@@ -42,7 +48,6 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const { data: session } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -70,7 +75,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [session]);
 
-  const sidebarItems = isOwner ? ownerSidebarItems : developerSidebarItems;
+  const sidebarItems = isOwner ? adminSidebarItems : developerSidebarItems;
 
   if (loading) {
     return (
@@ -104,9 +109,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {sidebarItems.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <button
+                <Link
                   key={item.name}
-                  onClick={() => router.push(item.href)}
+                  href={item.href}
                   className={cn(
                     "flex items-center w-full px-4 py-2 text-sm font-medium rounded-md transition-colors",
                     isActive
@@ -116,7 +121,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   <item.icon className="w-5 h-5 mr-3" />
                   {!isCollapsed && <span>{item.name}</span>}
-                </button>
+                </Link>
               );
             })}
           </nav>

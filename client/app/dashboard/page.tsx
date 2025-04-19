@@ -217,32 +217,48 @@ function PendingApplications() {
 }
 
 interface Goal {
-  id: string;
+  _id: string;
   title: string;
   description: string;
-  status: "completed" | "in-progress" | "pending";
+  status: "pending" | "in_progress" | "completed";
+  priority: "low" | "medium" | "high";
+  due_date: string;
+  assignee: string;
+  tags: string[];
 }
 
 const goals: Goal[] = [
   {
-    id: "1",
+    _id: "1",
     title: "Implement AI-powered code review",
     description:
       "Integrate AI to automatically review pull requests and suggest improvements",
-    status: "in-progress",
+    status: "in_progress",
+    priority: "medium",
+    due_date: "2024-05-15",
+    assignee: "John Doe",
+    tags: ["AI", "Code Review"],
   },
   {
-    id: "2",
+    _id: "2",
     title: "Enhance developer productivity",
     description:
       "Add more automation tools and integrations to streamline development workflow",
     status: "pending",
+    priority: "low",
+    due_date: "2024-06-01",
+    assignee: "Jane Smith",
+    tags: ["Automation", "Productivity"],
   },
   {
-    id: "3",
+    _id: "3",
     title: "Improve code quality metrics",
     description: "Implement comprehensive code quality tracking and reporting",
     status: "completed",
+    priority: "high",
+    due_date: "2024-04-30",
+    assignee: "Alice Johnson",
+    tags: ["Code Quality", "Metrics"],
   },
 ];
 
@@ -258,13 +274,13 @@ function ProductGoals() {
       <div className="space-y-4">
         {goals.map((goal) => (
           <div
-            key={goal.id}
+            key={goal._id}
             className="p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg"
           >
             <div className="flex items-start gap-3">
               {goal.status === "completed" ? (
                 <CheckCircle2 className="w-5 h-5 text-green-500 mt-1" />
-              ) : goal.status === "in-progress" ? (
+              ) : goal.status === "in_progress" ? (
                 <Circle className="w-5 h-5 text-yellow-500 mt-1" />
               ) : (
                 <Circle className="w-5 h-5 text-zinc-400 mt-1" />
@@ -281,14 +297,14 @@ function ProductGoals() {
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       goal.status === "completed"
                         ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                        : goal.status === "in-progress"
+                        : goal.status === "in_progress"
                         ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
                         : "bg-zinc-100 text-zinc-800 dark:bg-zinc-900/30 dark:text-zinc-300"
                     }`}
                   >
                     {goal.status === "completed"
                       ? "Completed"
-                      : goal.status === "in-progress"
+                      : goal.status === "in_progress"
                       ? "In Progress"
                       : "Pending"}
                   </span>
@@ -444,25 +460,47 @@ function OrganizationDashboard() {
   const { data: session } = useSession();
   const [showKey, setShowKey] = useState(false);
   const [organization, setOrganization] = useState<Organization | null>(null);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchOrganization = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(
+        // First get the organization
+        const orgResponse = await fetch(
           `http://localhost:8000/get-organization/${session?.user?.github_id}`
         );
-        const data = await response.json();
-        setOrganization(data.organization);
+        const orgData = await orgResponse.json();
+        const org = orgData.organization;
+
+        // Then get the GitHub URL
+        const githubResponse = await fetch(
+          `http://localhost:8000/get-github/${session?.user?.github_id}`
+        );
+        const githubData = await githubResponse.json();
+
+        // Then get the product goals
+        const goalsResponse = await fetch(
+          `http://localhost:8000/get-product-goals/${org._id}`
+        );
+        const goalsData = await goalsResponse.json();
+
+        // Combine the data
+        setOrganization({
+          ...org,
+          github_url: githubData.github_url,
+        });
+        setGoals(goalsData.product_goals || []);
       } catch (error) {
-        console.error("Error fetching organization:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
     if (session?.user?.github_id) {
-      fetchOrganization();
+      fetchData();
     }
   }, [session]);
 
@@ -495,7 +533,7 @@ function OrganizationDashboard() {
             <div className="w-24 h-24 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
               {organization.image_url ? (
                 <img
-                  src={organization.image_url || "/placeholder.svg"}
+                  src={organization.image_url}
                   alt={`${organization.name} logo`}
                   className="w-full h-full object-cover"
                 />
@@ -562,7 +600,96 @@ function OrganizationDashboard() {
         {/* Second Row */}
         {/* Wide card for product goals */}
         <div className="col-span-2 bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-6 overflow-auto">
-          <ProductGoals />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-indigo-500" />
+              <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
+                Product Goals
+              </h2>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                router.push(
+                  isAdmin ? "/dashboard/set-goals" : "/dashboard/view-goals"
+                )
+              }
+            >
+              {isAdmin ? "Set Goals" : "View All Goals"}
+            </Button>
+          </div>
+
+          {goals.length === 0 ? (
+            <p className="text-zinc-600 dark:text-zinc-400">
+              No goals set yet.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {goals.slice(0, 3).map((goal, index) => (
+                <div
+                  key={goal._id}
+                  className="p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-medium">{goal.title}</h3>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                        {goal.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {goal.tags?.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2 py-0.5 bg-zinc-200 dark:bg-zinc-600 rounded-full text-xs"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          goal.status === "completed"
+                            ? "bg-green-100 text-green-800"
+                            : goal.status === "in_progress"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-zinc-100 text-zinc-800"
+                        }`}
+                      >
+                        {goal.status.replace("_", " ")}
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          goal.priority === "high"
+                            ? "bg-red-100 text-red-800"
+                            : goal.priority === "medium"
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {goal.priority}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {goals.length > 3 && (
+                <Button
+                  variant="ghost"
+                  className="w-full mt-2"
+                  onClick={() =>
+                    router.push(
+                      isAdmin ? "/dashboard/set-goals" : "/dashboard/view-goals"
+                    )
+                  }
+                >
+                  View All Goals ({goals.length})
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Small card for org applications (admin only) or relevant content */}
