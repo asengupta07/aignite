@@ -92,6 +92,23 @@ class MongoProvider:
             raise ValueError(f"Organization with ID {org_id} not found")
         return organization.get("key")
     
+    def get_organization_by_user_id(self, user_id: str):
+        # First check if user is an admin (owner) of an organization
+        organization = self.db["organizations"].find_one({"owner_id": user_id})
+        if organization:
+            organization["_id"] = str(organization["_id"])
+            return organization
+            
+        # If not an admin, check if user is a member of any organization
+        member = self.db["organization_members"].find_one({"github_id": user_id})
+        if member:
+            organization = self.db["organizations"].find_one({"_id": ObjectId(member["organization_id"])})
+            if organization:
+                organization["_id"] = str(organization["_id"])
+                return organization
+                
+        return None
+    
     def set_org_github(self, admin_id: str, github_url: str):
         organization = self.db["organizations"].find_one({"owner_id": admin_id})
         if not organization:
