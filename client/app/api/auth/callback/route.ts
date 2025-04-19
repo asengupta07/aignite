@@ -22,12 +22,12 @@ export const authOptions: NextAuthOptions = {
           await connectToDatabase();
 
           // Check if user already exists
-          const existingUser = await User.findOne({ githubId: profile?.sub });
+          const existingUser = await User.findOne({ github_id: profile?.sub });
 
           if (!existingUser) {
             // Create new user
             await User.create({
-              githubId: profile?.sub,
+              github_id: profile?.sub,
               name: user.name,
               email: user.email,
               image: user.image,
@@ -35,7 +35,7 @@ export const authOptions: NextAuthOptions = {
           } else {
             // Update existing user
             await User.findOneAndUpdate(
-              { githubId: profile?.sub },
+              { github_id: profile?.sub },
               {
                 name: user.name,
                 email: user.email,

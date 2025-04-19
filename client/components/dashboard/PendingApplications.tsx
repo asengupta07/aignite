@@ -22,7 +22,7 @@ export function PendingApplications() {
     const fetchApplications = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/applications/${session?.user?.githubId}`
+          `http://localhost:8000/applications/${session?.user?.github_id}`
         );
         const data = await response.json();
         setApplications(data.applications || []);
@@ -33,7 +33,7 @@ export function PendingApplications() {
       }
     };
 
-    if (session?.user?.githubId) {
+    if (session?.user?.github_id) {
       fetchApplications();
     }
   }, [session]);
@@ -58,7 +58,7 @@ export function PendingApplications() {
 
       // Refresh applications
       const updatedResponse = await fetch(
-        `http://localhost:8000/applications/${session?.user?.githubId}`
+        `http://localhost:8000/applications/${session?.user?.github_id}`
       );
       const updatedData = await updatedResponse.json();
       setApplications(updatedData.applications || []);

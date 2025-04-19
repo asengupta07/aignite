@@ -25,7 +25,7 @@ export function DevReports() {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/get-latest-dev-report/${session?.user?.githubId}`
+        `http://localhost:8000/get-latest-dev-report/${session?.user?.github_id}`
       );
       const data: DevReportResponse = await response.json();
       setReport(data.report);
@@ -37,7 +37,7 @@ export function DevReports() {
   };
 
   useEffect(() => {
-    if (session?.user?.githubId) {
+    if (session?.user?.github_id) {
       fetchDevReport();
     }
   }, [session]);

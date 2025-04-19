@@ -29,7 +29,7 @@ export default function OrganizationDashboard() {
     const fetchOrganization = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/get-organization/${session?.user?.githubId}`
+          `http://localhost:8000/get-organization/${session?.user?.github_id}`
         );
         const data = await response.json();
         setOrganization(data.organization);
@@ -40,7 +40,7 @@ export default function OrganizationDashboard() {
       }
     };
 
-    if (session?.user?.githubId) {
+    if (session?.user?.github_id) {
       fetchOrganization();
     }
   }, [session]);
@@ -61,7 +61,7 @@ export default function OrganizationDashboard() {
     );
   }
 
-  const isAdmin = session?.user?.githubId === organization.owner_id;
+  const isAdmin = session?.user?.github_id === organization.owner_id;
 
   return (
     <div className="max-w-7xl mx-auto p-6">
