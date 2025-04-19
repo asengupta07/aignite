@@ -29,6 +29,14 @@ export default function OrganizationDashboard() {
           `http://localhost:8000/get-organization/${session?.user?.githubId}`
         );
         const data = await response.json();
+        console.log("Organization Data:", {
+          name: data.organization?.name,
+          description: data.organization?.description,
+          github_url: data.organization?.github_url,
+          owner_id: data.organization?.owner_id,
+          key: data.organization?.key,
+          image_url: data.organization?.image_url,
+        });
         setOrganization(data.organization);
       } catch (error) {
         console.error("Error fetching organization:", error);
