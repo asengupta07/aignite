@@ -86,6 +86,12 @@ class MongoProvider:
             member["_id"] = str(member["_id"])
         return members
     
+    def get_key(self, org_id: str):
+        organization = self.db["organizations"].find_one({"_id": ObjectId(org_id)})
+        if not organization:
+            raise ValueError(f"Organization with ID {org_id} not found")
+        return organization.get("key")
+    
     def set_org_github(self, org_id: str, github_url: str):
         self.db["organization_githubs"].insert_one({"organization_id": org_id, "github_url": github_url})
     
