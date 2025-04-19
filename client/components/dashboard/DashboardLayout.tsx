@@ -3,15 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import {
-  Home,
-  BarChart2,
-  GitPullRequest,
-  GitCommit,
-  MessageSquare,
-  Code2,
-  FileText,
-} from "lucide-react";
+import { Home, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Organization {
@@ -26,24 +18,9 @@ const ownerSidebarItems = [
     href: "/dashboard",
   },
   {
-    name: "Metrics",
-    icon: BarChart2,
-    href: "/dashboard/metrics",
-  },
-  {
-    name: "PR Summaries",
-    icon: GitPullRequest,
-    href: "/dashboard/pr-summaries",
-  },
-  {
-    name: "Commit Summaries",
-    icon: GitCommit,
-    href: "/dashboard/commit-summaries",
-  },
-  {
-    name: "Status Assistant",
-    icon: MessageSquare,
-    href: "/dashboard/status-assistant",
+    name: "Set Goals",
+    icon: Target,
+    href: "/dashboard/set-goals",
   },
 ];
 
@@ -54,14 +31,9 @@ const developerSidebarItems = [
     href: "/dashboard",
   },
   {
-    name: "Query Codebase",
-    icon: Code2,
-    href: "/dashboard/query-codebase",
-  },
-  {
-    name: "Generate Documentation",
-    icon: FileText,
-    href: "/dashboard/generate-docs",
+    name: "View Goals",
+    icon: Target,
+    href: "/dashboard/view-goals",
   },
 ];
 
