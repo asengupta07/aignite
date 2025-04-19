@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from models.schema import Organization, OrganizationMember, User, ApplicationStatus
+from models.schema import Organization, OrganizationMember, User, ApplicationStatus, ProductGoal
 from utils.mongo import MongoProvider
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
@@ -169,64 +169,99 @@ async def get_organization_members(organization_id: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
+@app.post("/get-dev-team/{org_id}")
+async def get_dev_team(org_id: str):
+    try:
+        dev_team = mongo_client.get_dev_team(org_id)
+        return {"dev_team": dev_team}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.post("/create-product-goals/{org_id}")
+async def create_product_goals(org_id: str, product_goal: ProductGoal):
+    try:
+        # Validate the product goal data
+        product_goal_dict = product_goal.model_dump()
+        product_goal_dict["organization_id"] = org_id
+        
+        mongo_client.store_product_goals(org_id, product_goal_dict)
+        return {"message": "Product goals created successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.post("/get-product-goals/{org_id}")
+async def get_product_goals(org_id: str):
+    try:
+        product_goals = mongo_client.get_product_goals(org_id)
+        return {"product_goals": product_goals}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/get-latest-dev-report/{user_id}")
 async def get_latest_dev_report(user_id: str):
     try:
-        # Get organization for the user
         org = mongo_client.get_organization_by_user_id(user_id)
         if not org:
             raise HTTPException(status_code=404, detail="User is not affiliated with any organization")
             
-        # Check if we have a cached report for today
-        cached_report = mongo_client.get_todays_dev_report(str(org["_id"]))
-        if cached_report:
-            return {"report": cached_report["report"]}
-            
-        # Get GitHub URL from database
-        github_url = mongo_client.get_org_github_url(str(org["_id"]))
+        org_id = str(org["_id"])
         
-        # Extract owner and repo from GitHub URL
-        # URL format: https://github.com/owner/repo
+        github_url = mongo_client.get_org_github_url(org_id)
+        
         parts = github_url.strip('/').split('/')
         if len(parts) < 2:
             raise HTTPException(status_code=400, detail="Invalid GitHub URL format")
         owner, repo = parts[-2], parts[-1]
         
-        # Get today's date range
-        today = datetime.now(dt.UTC)
-        start_time = datetime.combine(today, datetime.min.time())
-        end_time = datetime.combine(today, datetime.max.time())
+        last_commit_id = mongo_client.get_last_commit_id(org_id)
         
-        # Format dates for GitHub API
-        start_time_str = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
-        end_time_str = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
-        
-        # Get commits from GitHub API
         headers = {
             "Accept": "application/vnd.github+json"
         }
         
         url = f"https://api.github.com/repos/{owner}/{repo}/commits"
-        params = {
-            "since": start_time_str,
-            "until": end_time_str
-        }
+        params = {"per_page": 1}
         
         response = requests.get(url, headers=headers, params=params)
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail="Failed to fetch commits from GitHub")
             
-        commits = response.json()
-        commit_messages = [commit["commit"]["message"] for commit in commits]
+        latest_commit = response.json()[0] if response.json() else None
         
-        # Generate dev report
-        dev_report_agent = DevReportAgent()
-        report = dev_report_agent.generate_dev_report(commit_messages)
-        
-        # Cache the report
-        mongo_client.store_dev_report(str(org["_id"]), report)
-        
-        return {"report": report}
+        if not last_commit_id or (latest_commit and latest_commit["sha"] != last_commit_id):
+            today = datetime.now(dt.UTC)
+            start_time = datetime.combine(today, datetime.min.time())
+            end_time = datetime.combine(today, datetime.max.time())
+            
+            start_time_str = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+            end_time_str = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+            
+            params = {
+                "since": start_time_str,
+                "until": end_time_str
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail="Failed to fetch commits from GitHub")
+                
+            commits = response.json()
+            commit_messages = [commit["commit"]["message"] for commit in commits]
+            
+            dev_report_agent = DevReportAgent()
+            report = dev_report_agent.generate_dev_report(commit_messages)
+            
+            mongo_client.store_dev_report(org_id, report)
+            if latest_commit:
+                mongo_client.store_last_commit_id(org_id, latest_commit["sha"])
+            
+            return {"report": report}
+        else:
+            cached_report = mongo_client.get_todays_dev_report(org_id)
+            return {"report": cached_report["report"]}
         
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

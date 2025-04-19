@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 class OrganizationMember(BaseModel):
     organization_id: str
@@ -32,3 +33,14 @@ class DevReport(BaseModel):
     organization_id: str
     date: str
     report: dict
+
+class ProductGoal(BaseModel):
+    title: str
+    description: str
+    status: str
+    priority: str
+    due_date: datetime
+    assignee: str
+    tags: list[str]
+    organization_id: str
+    created_at: Optional[datetime] = None

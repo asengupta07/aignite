@@ -141,4 +141,57 @@ class MongoProvider:
             {"$set": {"report": report}},
             upsert=True
         )
+
+    def get_last_commit_id(self, organization_id: str):
+        report = self.db["dev_reports"].find_one(
+            {"organization_id": organization_id},
+            sort=[("date", -1)]
+        )
+        return report.get("last_commit_id") if report else None
+
+    def store_last_commit_id(self, organization_id: str, commit_id: str):
+        today = datetime.now().strftime("%Y-%m-%d")
+        self.db["dev_reports"].update_one(
+            {"organization_id": organization_id, "date": today},
+            {"$set": {"last_commit_id": commit_id}},
+            upsert=True
+        )
+
+    def get_dev_team(self, org_id: str):
+        """Get all members of an organization who are developers"""
+        members = list(self.db["organization_members"].find({
+            "organization_id": org_id,
+            "role": {"$in": ["developer", "admin"]}  # Include both developers and admins
+        }))
+        
+        # Convert ObjectId to string and add user details
+        for member in members:
+            member["_id"] = str(member["_id"])
+            user = self.db["users"].find_one({"github_id": member["github_id"]})
+            if user:
+                member["name"] = user["name"]
+                member["image"] = user["image"]
+                member["email"] = user["email"]
+        
+        return members
+
+    def store_product_goals(self, org_id: str, product_goals: dict):
+        """Store product goals for an organization"""
+        product_goals["organization_id"] = org_id
+        product_goals["created_at"] = datetime.now()
+        self.db["product_goals"].insert_one(product_goals)
+
+    def get_product_goals(self, org_id: str):
+        """Get all product goals for an organization"""
+        goals = list(self.db["product_goals"].find({"organization_id": org_id}))
+        
+        # Convert ObjectId to string
+        for goal in goals:
+            goal["_id"] = str(goal["_id"])
+            if "created_at" in goal:
+                goal["created_at"] = goal["created_at"].isoformat()
+            if "due_date" in goal:
+                goal["due_date"] = goal["due_date"].isoformat()
+        
+        return goals
     
