@@ -49,6 +49,15 @@ async def create_organization(organization: Request):
         return {"message": "Organization created successfully", "key": key}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/get-key/{org_id}")
+async def get_key(org_id: str):
+    try:
+        key = mongo_client.get_key(org_id)
+        return {"key": key}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/create-user")
 async def create_user(user: Request):
