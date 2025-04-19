@@ -65,6 +65,7 @@ function PendingApplications() {
           `http://localhost:8000/applications/${session?.user?.githubId}`
         );
         const data = await response.json();
+        console.log("data", data);
         // Only show pending applications
         setApplications(
           (data.applications || []).filter(
