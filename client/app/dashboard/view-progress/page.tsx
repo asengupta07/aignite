@@ -374,6 +374,31 @@ export default function ViewProgressPage() {
                           Based on completed PRs and reviews
                         </p>
                       </div>
+
+                      {goal.progress_report.todos &&
+                        goal.progress_report.todos.length > 0 && (
+                          <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg shadow-sm border border-amber-100 dark:border-amber-900/30 hover:shadow-md transition-shadow duration-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <CheckCircle className="w-4 h-4 text-amber-500" />
+                              <h5 className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                                Action Items
+                              </h5>
+                            </div>
+                            <div className="space-y-2">
+                              {goal.progress_report.todos.map((todo, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-start gap-2"
+                                >
+                                  <span className="text-amber-500">•</span>
+                                  <span className="text-sm text-amber-600 dark:text-amber-400">
+                                    {todo}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                     </div>
 
                     <div className="space-y-4">
@@ -484,31 +509,6 @@ export default function ViewProgressPage() {
                           </div>
                         </div>
                       </div>
-
-                      {goal.progress_report.todos &&
-                        goal.progress_report.todos.length > 0 && (
-                          <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg shadow-sm border border-amber-100 dark:border-amber-900/30 hover:shadow-md transition-shadow duration-200">
-                            <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle className="w-4 h-4 text-amber-500" />
-                              <h5 className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                                Action Items
-                              </h5>
-                            </div>
-                            <div className="space-y-2">
-                              {goal.progress_report.todos.map((todo, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-start gap-2 p-2.5 bg-white dark:bg-amber-800/30 rounded-md shadow-sm border border-amber-200 dark:border-amber-800/50"
-                                >
-                                  <span className="text-amber-500 mt-1">•</span>
-                                  <span className="text-sm text-amber-600 dark:text-amber-400">
-                                    {todo}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
 
                       {goal.progress_report.risks &&
                         goal.progress_report.risks.length > 0 && (

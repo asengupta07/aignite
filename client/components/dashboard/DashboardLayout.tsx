@@ -28,11 +28,6 @@ const adminSidebarItems = [
     icon: BarChart,
     href: "/dashboard/view-progress",
   },
-  {
-    name: "View Goals",
-    icon: Target,
-    href: "/dashboard/view-goals",
-  },
 ];
 
 const developerSidebarItems = [
