@@ -202,4 +202,21 @@ class MongoProvider:
         except Exception as e:
             print(f"Error getting product goals: {str(e)}")
             return []
+
+    def get_todays_progress_report(self, organization_id: str):
+        """Get today's progress report for an organization"""
+        today = datetime.now().strftime("%Y-%m-%d")
+        return self.db["progress_reports"].find_one({
+            "organization_id": organization_id,
+            "date": today
+        })
+
+    def store_progress_report(self, organization_id: str, reports: list):
+        """Store progress reports for an organization"""
+        today = datetime.now().strftime("%Y-%m-%d")
+        self.db["progress_reports"].update_one(
+            {"organization_id": organization_id, "date": today},
+            {"$set": {"reports": reports}},
+            upsert=True
+        )
     

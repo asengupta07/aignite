@@ -6,11 +6,12 @@ from models.schema import ProductGoal
 from pydantic import BaseModel
 
 class ProgressReport(BaseModel):
-    goal_id: str
     expected_progress: str
     confirmed_progress: str
     issues: list[str]
     suggestions: list[str]
+    todos: list[str]
+    risks: list[str]
 
 class Commit(BaseModel):
     message: str
@@ -19,7 +20,6 @@ class Commit(BaseModel):
 class PR(BaseModel):
     title: str
     description: str
-    commits: list[Commit]
 
 load_dotenv()
 
@@ -29,9 +29,49 @@ class ProgressReportAgent:
                   response_model=ProgressReport, structured_outputs=True)
 
     def generate_progress_report(self, goal: ProductGoal, commits: list[Commit], prs: list[PR]) -> ProgressReport:
+        goal = ProductGoal(**goal)
         prompt = f"""
         You are a helpful assistant that generates a progress report for a given goal from commits and PRs.
         The goal is {goal.title}
         The description is {goal.description}
+        The status is {goal.status}
+        The priority is {goal.priority}
+        The tags are {goal.tags}
+
+        The commits are:
+        {", ".join([commit for commit in commits])}
+
+        The PRs are:
+        {", ".join([pr.title + " - " + pr.description for pr in prs])}
+
+        Your output should be in the following format:
+        - Expected progress (Out of 100)
+        - Confirmed progress (Out of 100)
+        - Issues
+        - Suggestions
+        - To-dos (A list of specific, actionable tasks that need to be completed to achieve the goal)
+        - Risks / Blockers (Highlight current or potential issues that may delay or hinder goal completion)
+
+        Expected progress should be a optimistic estimate of the progress of the goal based on the commits.
+
+        Confirmed progress should be a more realistic estimate of the progress of the goal based on the PRs.
+
+        To-dos should be specific, actionable tasks that:
+        1. Are directly related to the goal
+        2. Can be completed independently
+        3. Have clear success criteria
+        4. Are prioritized based on importance
+        5. Include both technical and non-technical tasks
+        6. Consider dependencies between tasks
+
+        Risks / Blockers should include:
+        1. Unresolved dependencies that could delay progress
+        2. Areas requiring external input or approval
+        3. Technical challenges or limitations
+        4. Resource constraints or availability issues
+        5. Potential conflicts with other goals or systems
+        6. External factors that could impact the timeline
+        7. Areas of ambiguity or uncertainty
         """
-        return self.agent.run(prompt)
+        response: RunResponse = self.agent.run(prompt)
+        return response.content.__dict__
