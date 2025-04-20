@@ -6,7 +6,7 @@ from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 import uvicorn
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import datetime as dt
 from agents.dev_report import DevReportAgent
 from agents.progress_report import ProgressReportAgent
@@ -235,9 +235,9 @@ async def get_latest_dev_report(user_id: str):
         latest_commit = response.json()[0] if response.json() else None
         
         if not last_commit_id or (latest_commit and latest_commit["sha"] != last_commit_id):
-            today = datetime.now(dt.UTC)
-            start_time = datetime.combine(today, datetime.min.time())
-            end_time = datetime.combine(today, datetime.max.time())
+            four_days_ago = datetime.now(dt.UTC) - timedelta(days=4)
+            start_time = datetime.combine(four_days_ago, datetime.min.time())
+            end_time = datetime.combine(datetime.now(dt.UTC), datetime.max.time())
             
             start_time_str = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
             end_time_str = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -315,6 +315,7 @@ async def get_progress_report(org_id: str):
         progress_reports = []
         
         for goal in goals:
+            print("Goal: ", goal)
             progress_report = progress_report_agent.generate_progress_report(goal, commit_messages, prs)
             progress_report["goal_id"] = str(goal["_id"])
             print("Progress Report:")

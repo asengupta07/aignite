@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 from models.schema import ProductGoal
 from pydantic import BaseModel
-
+from typing import Optional
 class ProgressReport(BaseModel):
     expected_progress: str
     confirmed_progress: str
@@ -28,8 +28,22 @@ class ProgressReportAgent:
         self.agent = Agent(model=Gemini(id="gemini-2.0-flash", api_key=os.getenv("GOOGLE_API_KEY")),
                   response_model=ProgressReport, structured_outputs=True)
 
-    def generate_progress_report(self, goal: ProductGoal, commits: list[Commit], prs: list[PR]) -> ProgressReport:
+    def generate_progress_report(self, goal: ProductGoal, commits: list[Commit], prs: list[Optional[PR]]) -> ProgressReport:
         goal = ProductGoal(**goal)
+        # Filter out None values and create PR objects only for valid PRs
+        valid_prs = [PR(**pr) for pr in prs if pr is not None and pr.get('description') is not None]
+        
+        # Handle both string and Commit object cases for commits
+        commit_messages = []
+        for commit in commits:
+            if isinstance(commit, str):
+                commit_messages.append(commit)
+            elif isinstance(commit, dict):
+                commit_messages.append(commit.get('message', str(commit)))
+            else:
+                commit_messages.append(commit.message if hasattr(commit, 'message') else str(commit))
+                
+        print("Goal: ", goal)
         prompt = f"""
         You are a helpful assistant that generates a progress report for a given goal from commits and PRs.
         The goal is {goal.title}
@@ -39,10 +53,10 @@ class ProgressReportAgent:
         The tags are {goal.tags}
 
         The commits are:
-        {", ".join([commit for commit in commits])}
+        {", ".join(commit_messages)}
 
         The PRs are:
-        {", ".join([pr.title + " - " + pr.description for pr in prs])}
+        {", ".join([pr.title + " - " + pr.description for pr in valid_prs])}
 
         Your output should be in the following format:
         - Expected progress (Out of 100)
