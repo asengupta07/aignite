@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Target, BarChart } from "lucide-react";
+import { Home, Target, BarChart, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -28,6 +28,11 @@ const adminSidebarItems = [
     icon: BarChart,
     href: "/dashboard/view-progress",
   },
+  {
+    name: "Documentation",
+    icon: FileText,
+    href: "/dashboard/documentation",
+  },
 ];
 
 const developerSidebarItems = [
@@ -40,6 +45,11 @@ const developerSidebarItems = [
     name: "View Goals",
     icon: Target,
     href: "/dashboard/view-goals",
+  },
+  {
+    name: "Documentation",
+    icon: FileText,
+    href: "/dashboard/documentation",
   },
 ];
 
@@ -58,6 +68,11 @@ const productSidebarItems = [
     name: "View Progress",
     icon: BarChart,
     href: "/dashboard/view-progress",
+  },
+  {
+    name: "Documentation",
+    icon: FileText,
+    href: "/dashboard/documentation",
   },
 ];
 

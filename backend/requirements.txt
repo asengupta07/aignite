@@ -4,3 +4,5 @@ pydantic
 pymongo
 python-dotenv
 uvicorn
+requests
+agno>=0.1.0

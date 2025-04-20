@@ -10,6 +10,7 @@ from datetime import datetime
 import datetime as dt
 from agents.dev_report import DevReportAgent
 from agents.progress_report import ProgressReportAgent
+from agents.documentation_agent import DocumentationAgent
 
 load_dotenv()
 
@@ -327,6 +328,129 @@ async def get_progress_report(org_id: str):
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/get-user-commits/{org_id}/{github_id}")
+async def get_user_commits(org_id: str, github_id: str):
+    try:
+        github_url = mongo_client.get_org_github_url(org_id)
+        parts = github_url.strip('/').split('/')
+        if len(parts) < 2:
+            raise HTTPException(status_code=400, detail="Invalid GitHub URL format")
+        owner, repo = parts[-2], parts[-1]
+        
+        headers = {
+            "Accept": "application/vnd.github+json"
+        }
+        
+        # Get user's GitHub username from their ID
+        user = mongo_client.get_user({"github_id": github_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+        params = {"author": user["name"]}
+        
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to fetch commits from GitHub")
+            
+        commits = response.json()
+        return {"commits": commits}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/get-user-prs/{org_id}/{github_id}")
+async def get_user_prs(org_id: str, github_id: str):
+    try:
+        github_url = mongo_client.get_org_github_url(org_id)
+        parts = github_url.strip('/').split('/')
+        if len(parts) < 2:
+            raise HTTPException(status_code=400, detail="Invalid GitHub URL format")
+        owner, repo = parts[-2], parts[-1]
+        
+        headers = {
+            "Accept": "application/vnd.github+json"
+        }
+        
+        # Get user's GitHub username from their ID
+        user = mongo_client.get_user({"github_id": github_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        url = f"https://api.github.com/repos/{owner}/{repo}/pulls"
+        params = {"state": "all", "creator": user["name"]}
+        
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to fetch PRs from GitHub")
+            
+        prs = response.json()
+        return {"pull_requests": prs}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/generate-documentation")
+async def generate_documentation(request: Request):
+    try:
+        data = await request.json()
+        type = data["type"]
+        item_id = data["id"]
+        github_id = data["github_id"]
+        
+        # Get organization and GitHub URL
+        org = mongo_client.get_organization_by_user_id(github_id)
+        github_url = mongo_client.get_org_github_url(str(org["_id"]))
+        
+        parts = github_url.strip('/').split('/')
+        if len(parts) < 2:
+            raise HTTPException(status_code=400, detail="Invalid GitHub URL format")
+        owner, repo = parts[-2], parts[-1]
+        
+        headers = {
+            "Accept": "application/vnd.github+json"
+        }
+        
+        if type == "commit":
+            url = f"https://api.github.com/repos/{owner}/{repo}/commits/{item_id}"
+            response = requests.get(url, headers=headers)
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail="Failed to fetch commit from GitHub")
+                
+            commit_data = response.json()
+            files = commit_data["files"]
+            commit_message = commit_data["commit"]["message"]
+            
+            # Generate documentation using the agent
+            doc_agent = DocumentationAgent()
+            documentation = doc_agent.generate_commit_documentation(files, commit_message)
+            
+        else:  # PR
+            url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{item_id}"
+            response = requests.get(url, headers=headers)
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail="Failed to fetch PR from GitHub")
+                
+            pr_data = response.json()
+            
+            # Get the PR diff
+            diff_url = pr_data["diff_url"]
+            diff_response = requests.get(diff_url)
+            if diff_response.status_code != 200:
+                raise HTTPException(status_code=diff_response.status_code, detail="Failed to fetch PR diff")
+                
+            # Generate documentation using the agent
+            doc_agent = DocumentationAgent()
+            documentation = doc_agent.generate_pr_documentation(pr_data, diff_response.text)
+        
+        return {
+            "content": documentation["html_content"],
+            "generated_at": datetime.now().isoformat(),
+            "metadata": {
+                key: value for key, value in documentation.items() if key != "html_content"
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
