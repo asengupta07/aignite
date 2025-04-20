@@ -81,7 +81,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="flex h-full bg-zinc-50 dark:bg-zinc-900">
       {/* Sidebar */}
       <div
         className={cn(
