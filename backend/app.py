@@ -9,6 +9,7 @@ import requests
 from datetime import datetime
 import datetime as dt
 from agents.dev_report import DevReportAgent
+from agents.progress_report import ProgressReportAgent
 
 load_dotenv()
 
@@ -268,6 +269,64 @@ async def get_latest_dev_report(user_id: str):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/get-progress-report/{org_id}")
+async def get_progress_report(org_id: str):
+    try:
+        # First check if we have a cached report for today
+        cached_report = mongo_client.get_todays_progress_report(org_id)
+        if cached_report:
+            return {"progress_reports": cached_report["reports"]}
+
+        # If no cached report, generate a new one
+        goals = mongo_client.get_product_goals(org_id)
+        github_url = mongo_client.get_org_github_url(org_id)
+        
+        parts = github_url.strip('/').split('/')
+        if len(parts) < 2:
+            raise HTTPException(status_code=400, detail="Invalid GitHub URL format")
+        owner, repo = parts[-2], parts[-1]
+        
+        headers = {
+            "Accept": "application/vnd.github+json"
+        }
+        
+        url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+        
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to fetch commits from GitHub")
+        
+        commits = response.json()
+        commit_messages = [commit["commit"]["message"] for commit in commits]
+
+        url = f"https://api.github.com/repos/{owner}/{repo}/pulls"
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to fetch PRs from GitHub")
+        
+        prs = response.json()
+        prs = [{"title": pr["title"], "description": pr["body"]} for pr in prs]
+        
+        progress_report_agent = ProgressReportAgent()
+        progress_reports = []
+        
+        for goal in goals:
+            progress_report = progress_report_agent.generate_progress_report(goal, commit_messages, prs)
+            progress_report["goal_id"] = str(goal["_id"])
+            print("Progress Report:")
+            print(progress_report)
+            progress_reports.append(progress_report)
+
+        # Cache the generated reports
+        mongo_client.store_progress_report(org_id, progress_reports)
+
+        return {"progress_reports": progress_reports}
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

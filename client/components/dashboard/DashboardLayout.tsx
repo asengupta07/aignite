@@ -28,6 +28,11 @@ const adminSidebarItems = [
     icon: BarChart,
     href: "/dashboard/view-progress",
   },
+  {
+    name: "View Goals",
+    icon: Target,
+    href: "/dashboard/view-goals",
+  },
 ];
 
 const developerSidebarItems = [
@@ -43,6 +48,24 @@ const developerSidebarItems = [
   },
 ];
 
+const productSidebarItems = [
+  {
+    name: "Home",
+    icon: Home,
+    href: "/dashboard",
+  },
+  {
+    name: "Set Goals",
+    icon: Target,
+    href: "/dashboard/set-goals",
+  },
+  {
+    name: "View Progress",
+    icon: BarChart,
+    href: "/dashboard/view-progress",
+  },
+];
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -51,31 +74,56 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOrganization = async () => {
+    const fetchUserRole = async () => {
       try {
         const response = await fetch(
           `http://localhost:8000/get-organization/${session?.user?.github_id}`
         );
         const data = await response.json();
         const organization: Organization = data.organization;
-        setIsOwner(session?.user?.github_id === organization.owner_id);
+        
+        // If user is owner, they are admin
+        if (session?.user?.github_id === organization.owner_id) {
+          setUserRole("admin");
+        } else {
+          // Fetch user's role from organization members
+          const membersResponse = await fetch(
+            `http://localhost:8000/organizations/${organization._id}/members`
+          );
+          const membersData = await membersResponse.json();
+          const userMember = membersData.members.find(
+            (member: any) => member.github_id === session?.user?.github_id
+          );
+          setUserRole(userMember?.role || null);
+        }
       } catch (error) {
-        console.error("Error fetching organization:", error);
+        console.error("Error fetching user role:", error);
       } finally {
         setLoading(false);
       }
     };
 
     if (session?.user?.github_id) {
-      fetchOrganization();
+      fetchUserRole();
     }
   }, [session]);
 
-  const sidebarItems = isOwner ? adminSidebarItems : developerSidebarItems;
+  const getSidebarItems = () => {
+    switch (userRole) {
+      case "admin":
+        return [...adminSidebarItems];
+      case "developer":
+        return developerSidebarItems;
+      case "product":
+        return productSidebarItems;
+      default:
+        return [];
+    }
+  };
 
   if (loading) {
     return (
@@ -106,7 +154,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </h1>
           </div>
           <nav className="flex-1 px-2 py-4 space-y-1">
-            {sidebarItems.map((item) => {
+            {getSidebarItems().map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
