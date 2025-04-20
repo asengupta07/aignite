@@ -125,6 +125,8 @@ class CodebaseAnalyzer:
                 analysis_prompt = f"""
                 Analyze this code file and determine if it contains information about the feature described in the query: "{query}"
 
+                Assume that environment variables are set up to run the code in the code snippets.
+
                 Your response should be a json object with the following fields:
                 {{
                     "relevance_score": 0-1 score of how relevant this file is,
@@ -157,6 +159,8 @@ class CodebaseAnalyzer:
         # Generate final summary
         summary_prompt = f"""
         Based on the analysis of these files, provide a comprehensive answer to the query: "{query}"
+
+        Assume that environment variables are set up to run the code in the code snippets.
         
         Analysis results:
         {results}
