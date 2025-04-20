@@ -111,13 +111,18 @@ export default function ViewProgressPage() {
   }
 
   return (
-    <div className="h-full space-y-8 p-6">
-      <div className="flex items-center justify-between">
+    <div className="h-[calc(100vh-7rem)] flex flex-col">
+      <div className="flex items-center justify-between p-6">
         <div className="flex items-center gap-2">
           <Target className="w-6 h-6 text-indigo-500" />
           <h1 className="text-2xl font-bold">Goals Progress</h1>
         </div>
-        <Select value={filter} onValueChange={(value: any) => setFilter(value)}>
+        <Select
+          value={filter}
+          onValueChange={(
+            value: "all" | "pending" | "in_progress" | "completed"
+          ) => setFilter(value)}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -130,100 +135,104 @@ export default function ViewProgressPage() {
         </Select>
       </div>
 
-      <div className="grid gap-6">
-        {filteredGoals.length === 0 ? (
-          <p className="text-zinc-600 dark:text-zinc-400">No goals found.</p>
-        ) : (
-          filteredGoals.map((goal) => (
-            <div
-              key={goal._id}
-              className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm space-y-4"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-medium text-lg">{goal.title}</h3>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                    {goal.description}
-                  </p>
+      <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="grid gap-6">
+          {filteredGoals.length === 0 ? (
+            <p className="text-zinc-600 dark:text-zinc-400">No goals found.</p>
+          ) : (
+            filteredGoals.map((goal) => (
+              <div
+                key={goal._id}
+                className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm space-y-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-medium text-lg">{goal.title}</h3>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                      {goal.description}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        goal.status === "completed"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                          : goal.status === "in_progress"
+                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                          : "bg-zinc-100 text-zinc-800 dark:bg-zinc-900/30 dark:text-zinc-300"
+                      }`}
+                    >
+                      {goal.status.replace("_", " ")}
+                    </span>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        goal.priority === "high"
+                          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                          : goal.priority === "medium"
+                          ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                      }`}
+                    >
+                      {goal.priority}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      goal.status === "completed"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                        : goal.status === "in_progress"
-                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
-                        : "bg-zinc-100 text-zinc-800 dark:bg-zinc-900/30 dark:text-zinc-300"
-                    }`}
-                  >
-                    {goal.status.replace("_", " ")}
+
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <Progress value={goal.progress} className="h-2" />
+                  </div>
+                  <span className="text-sm font-medium">{goal.progress}%</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap gap-2">
+                    {goal.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handleUpdateProgress(
+                          goal._id,
+                          Math.max(0, (goal.progress || 0) - 10)
+                        )
+                      }
+                      disabled={!goal.progress}
+                    >
+                      -10%
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handleUpdateProgress(
+                          goal._id,
+                          Math.min(100, (goal.progress || 0) + 10)
+                        )
+                      }
+                      disabled={goal.progress === 100}
+                    >
+                      +10%
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex justify-between text-sm text-zinc-500 dark:text-zinc-400">
+                  <span>Assignee: {goal.assignee}</span>
+                  <span>
+                    Due: {new Date(goal.due_date).toLocaleDateString()}
                   </span>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      goal.priority === "high"
-                        ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                        : goal.priority === "medium"
-                        ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
-                        : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                    }`}
-                  >
-                    {goal.priority}
-                  </span>
                 </div>
               </div>
-
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <Progress value={goal.progress} className="h-2" />
-                </div>
-                <span className="text-sm font-medium">{goal.progress}%</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex flex-wrap gap-2">
-                  {goal.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      handleUpdateProgress(
-                        goal._id,
-                        Math.max(0, (goal.progress || 0) - 10)
-                      )
-                    }
-                    disabled={!goal.progress}
-                  >
-                    -10%
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      handleUpdateProgress(
-                        goal._id,
-                        Math.min(100, (goal.progress || 0) + 10)
-                      )
-                    }
-                    disabled={goal.progress === 100}
-                  >
-                    +10%
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex justify-between text-sm text-zinc-500 dark:text-zinc-400">
-                <span>Assignee: {goal.assignee}</span>
-                <span>Due: {new Date(goal.due_date).toLocaleDateString()}</span>
-              </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
