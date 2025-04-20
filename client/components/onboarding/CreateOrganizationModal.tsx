@@ -61,7 +61,7 @@ export default function CreateOrganizationModal({
 
       // Create organization
       const createResponse = await fetch(
-        "http://localhost:8000/create-organization",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/create-organization`,
         {
           method: "POST",
           headers: {
@@ -86,7 +86,7 @@ export default function CreateOrganizationModal({
       // Set GitHub URL if provided
       if (githubUrl) {
         const githubResponse = await fetch(
-          `http://localhost:8000/set-github/${session.user.github_id}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/set-github/${session.user.github_id}`,
           {
             method: "POST",
             headers: {

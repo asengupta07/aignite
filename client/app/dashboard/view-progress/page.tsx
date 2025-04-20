@@ -61,7 +61,7 @@ export default function ViewProgressPage() {
       try {
         // First get the organization
         const orgResponse = await fetch(
-          `http://localhost:8000/get-organization/${session?.user?.github_id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-organization/${session?.user?.github_id}`
         );
         const orgData = await orgResponse.json();
         setOrganization(orgData.organization);
@@ -70,10 +70,10 @@ export default function ViewProgressPage() {
         if (orgData.organization?._id) {
           const [goalsResponse, progressResponse] = await Promise.all([
             fetch(
-              `http://localhost:8000/get-product-goals/${orgData.organization._id}`
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-product-goals/${orgData.organization._id}`
             ),
             fetch(
-              `http://localhost:8000/get-progress-report/${orgData.organization._id}`
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-progress-report/${orgData.organization._id}`
             ),
           ]);
 
@@ -114,7 +114,7 @@ export default function ViewProgressPage() {
   const handleUpdateProgress = async (goalId: string, newProgress: number) => {
     try {
       const response = await fetch(
-        `http://localhost:8000/update-goal-progress/${goalId}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/update-goal-progress/${goalId}`,
         {
           method: "POST",
           headers: {
@@ -162,10 +162,10 @@ export default function ViewProgressPage() {
             <Target className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               Goals Progress
             </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="text-lg text-zinc-500 dark:text-zinc-400">
               Track and manage your team's objectives
             </p>
           </div>
@@ -194,10 +194,10 @@ export default function ViewProgressPage() {
             <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-4">
               <Target className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
             </div>
-            <h3 className="text-lg font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+            <h3 className="text-2xl font-medium text-zinc-700 dark:text-zinc-300 mb-1">
               No goals found
             </h3>
-            <p className="text-zinc-500 dark:text-zinc-400 text-center max-w-md">
+            <p className="text-lg text-zinc-500 dark:text-zinc-400 text-center max-w-md">
               Try changing your filter or create new goals to track your
               progress.
             </p>
@@ -210,10 +210,10 @@ export default function ViewProgressPage() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-lg text-zinc-800 dark:text-zinc-100">
+                  <h3 className="font-semibold text-2xl text-zinc-800 dark:text-zinc-100">
                     {goal.title}
                   </h3>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1.5 line-clamp-2">
+                  <p className="text-lg text-zinc-600 dark:text-zinc-400 mt-1.5 line-clamp-2">
                     {goal.description}
                   </p>
                 </div>
@@ -324,7 +324,7 @@ export default function ViewProgressPage() {
                     <div className="bg-white dark:bg-indigo-800/30 p-1.5 rounded-md shadow-sm">
                       <BarChart className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <h4 className="text-base font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    <h4 className="text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                       AI Progress Analysis
                     </h4>
                   </div>
@@ -332,7 +332,7 @@ export default function ViewProgressPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div className="space-y-4">
                       <div className="bg-zinc-50 dark:bg-zinc-700/50 p-4 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 hover:shadow-md transition-shadow duration-200">
-                        <h5 className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2">
+                        <h5 className="text-lg font-medium text-zinc-600 dark:text-zinc-400 mb-2">
                           Expected Progress
                         </h5>
                         <div className="flex items-center gap-3">
@@ -344,17 +344,14 @@ export default function ViewProgressPage() {
                               className="h-2.5 bg-zinc-200 dark:bg-zinc-700 [&>div]:bg-indigo-500 [&>div]:animate-pulse"
                             />
                           </div>
-                          <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
-                            {goal.progress_report.expected_progress}%
+                          <span className="text-base text-zinc-500 dark:text-zinc-400 mt-2">
+                            Based on recent commits and activity
                           </span>
                         </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                          Based on recent commits and activity
-                        </p>
                       </div>
 
                       <div className="bg-zinc-50 dark:bg-zinc-700/50 p-4 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 hover:shadow-md transition-shadow duration-200">
-                        <h5 className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2">
+                        <h5 className="text-lg font-medium text-zinc-600 dark:text-zinc-400 mb-2">
                           Confirmed Progress
                         </h5>
                         <div className="flex items-center gap-3">
@@ -366,13 +363,10 @@ export default function ViewProgressPage() {
                               className="h-2.5 bg-zinc-200 dark:bg-zinc-700 [&>div]:bg-green-500 [&>div]:animate-pulse"
                             />
                           </div>
-                          <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                            {goal.progress_report.confirmed_progress}%
+                          <span className="text-base text-zinc-500 dark:text-zinc-400 mt-2">
+                            Based on completed PRs and reviews
                           </span>
                         </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                          Based on completed PRs and reviews
-                        </p>
                       </div>
 
                       {goal.progress_report.todos &&
@@ -380,7 +374,7 @@ export default function ViewProgressPage() {
                           <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg shadow-sm border border-amber-100 dark:border-amber-900/30 hover:shadow-md transition-shadow duration-200">
                             <div className="flex items-center gap-2 mb-2">
                               <CheckCircle className="w-4 h-4 text-amber-500" />
-                              <h5 className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                              <h5 className="text-lg font-medium text-amber-600 dark:text-amber-400">
                                 Action Items
                               </h5>
                             </div>
@@ -390,8 +384,8 @@ export default function ViewProgressPage() {
                                   key={index}
                                   className="flex items-start gap-2"
                                 >
-                                  <span className="text-amber-500">•</span>
-                                  <span className="text-sm text-amber-600 dark:text-amber-400">
+                                  <span className="text-base text-amber-600 dark:text-amber-400">•</span>
+                                  <span className="text-base text-amber-600 dark:text-amber-400">
                                     {todo}
                                   </span>
                                 </div>
@@ -406,7 +400,7 @@ export default function ViewProgressPage() {
                         <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg shadow-sm border border-red-100 dark:border-red-900/30 hover:shadow-md transition-shadow duration-200">
                           <div className="flex items-center gap-2 mb-2">
                             <AlertCircle className="w-4 h-4 text-red-500" />
-                            <h5 className="text-sm font-medium text-red-600 dark:text-red-400">
+                            <h5 className="text-lg font-medium text-red-600 dark:text-red-400">
                               Potential Issues
                             </h5>
                           </div>
@@ -416,8 +410,8 @@ export default function ViewProgressPage() {
                                 key={index}
                                 className="flex items-start gap-2"
                               >
-                                <span className="text-red-500">•</span>
-                                <span className="text-sm text-red-600 dark:text-red-400">
+                                <span className="text-base text-red-600 dark:text-red-400">•</span>
+                                <span className="text-base text-red-600 dark:text-red-400">
                                   {issue}
                                 </span>
                               </li>
@@ -430,7 +424,7 @@ export default function ViewProgressPage() {
                         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg shadow-sm border border-blue-100 dark:border-blue-900/30 hover:shadow-md transition-shadow duration-200">
                           <div className="flex items-center gap-2 mb-2">
                             <Lightbulb className="w-4 h-4 text-blue-500" />
-                            <h5 className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                            <h5 className="text-lg font-medium text-blue-600 dark:text-blue-400">
                               Suggestions
                             </h5>
                           </div>
@@ -441,8 +435,8 @@ export default function ViewProgressPage() {
                                   key={index}
                                   className="flex items-start gap-2"
                                 >
-                                  <span className="text-blue-500">•</span>
-                                  <span className="text-sm text-blue-600 dark:text-blue-400">
+                                  <span className="text-base text-blue-600 dark:text-blue-400">•</span>
+                                  <span className="text-base text-blue-600 dark:text-blue-400">
                                     {suggestion}
                                   </span>
                                 </li>
@@ -455,16 +449,16 @@ export default function ViewProgressPage() {
                       <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg shadow-sm border border-purple-100 dark:border-purple-900/30 hover:shadow-md transition-shadow duration-200">
                         <div className="flex items-center gap-2 mb-2">
                           <Target className="w-4 h-4 text-purple-500" />
-                          <h5 className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                          <h5 className="text-lg font-medium text-purple-600 dark:text-purple-400">
                             Remaining Tasks
                           </h5>
                         </div>
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-purple-600 dark:text-purple-400">
+                            <span className="text-lg text-purple-600 dark:text-purple-400">
                               Progress Gap
                             </span>
-                            <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                            <span className="text-lg font-medium text-purple-600 dark:text-purple-400">
                               {Number.parseInt(
                                 goal.progress_report.expected_progress
                               ) -
@@ -488,7 +482,7 @@ export default function ViewProgressPage() {
                             />
                           </div>
                           <div className="mt-2">
-                            <h6 className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
+                            <h6 className="text-base font-medium text-purple-600 dark:text-purple-400 mb-1">
                               Key Areas to Focus On:
                             </h6>
                             <ul className="space-y-1">
@@ -498,8 +492,8 @@ export default function ViewProgressPage() {
                                     key={index}
                                     className="flex items-start gap-2"
                                   >
-                                    <span className="text-purple-500">•</span>
-                                    <span className="text-xs text-purple-600 dark:text-purple-400">
+                                    <span className="text-base text-purple-600 dark:text-purple-400">•</span>
+                                    <span className="text-base text-purple-600 dark:text-purple-400">
                                       {issue}
                                     </span>
                                   </li>
@@ -515,7 +509,7 @@ export default function ViewProgressPage() {
                           <div className="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-lg shadow-sm border border-rose-100 dark:border-rose-900/30 hover:shadow-md transition-shadow duration-200">
                             <div className="flex items-center gap-2 mb-2">
                               <AlertTriangle className="w-4 h-4 text-rose-500" />
-                              <h5 className="text-sm font-medium text-rose-600 dark:text-rose-400">
+                              <h5 className="text-lg font-medium text-rose-600 dark:text-rose-400">
                                 Risks & Blockers
                               </h5>
                             </div>
@@ -525,8 +519,8 @@ export default function ViewProgressPage() {
                                   key={index}
                                   className="flex items-start gap-2 p-2.5 bg-white dark:bg-rose-800/30 rounded-md shadow-sm border border-rose-200 dark:border-rose-800/50"
                                 >
-                                  <span className="text-rose-500 mt-1">•</span>
-                                  <span className="text-sm text-rose-600 dark:text-rose-400">
+                                  <span className="text-base text-rose-600 dark:text-rose-400">•</span>
+                                  <span className="text-base text-rose-600 dark:text-rose-400">
                                     {risk}
                                   </span>
                                 </div>

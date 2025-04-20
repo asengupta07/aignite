@@ -62,7 +62,7 @@ export default function SetGoalsPage() {
     const fetchOrganization = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/get-organization/${session?.user?.github_id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-organization/${session?.user?.github_id}`
         );
         const data = await response.json();
         setOrganization(data.organization);
@@ -70,7 +70,7 @@ export default function SetGoalsPage() {
         // Fetch dev team after getting organization
         if (data.organization?._id) {
           const devTeamResponse = await fetch(
-            `http://localhost:8000/get-dev-team/${data.organization._id}`
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-dev-team/${data.organization._id}`
           );
           const devTeamData = await devTeamResponse.json();
           console.log("devTeamData", devTeamData);
@@ -78,7 +78,7 @@ export default function SetGoalsPage() {
 
           // Fetch goals after getting organization
           const goalsResponse = await fetch(
-            `http://localhost:8000/get-product-goals/${data.organization._id}`
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-product-goals/${data.organization._id}`
           );
           const goalsData = await goalsResponse.json();
           setGoals(goalsData.product_goals || []);
@@ -118,7 +118,7 @@ export default function SetGoalsPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/create-product-goals/${organization._id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/create-product-goals/${organization._id}`,
         {
           method: "POST",
           headers: {
@@ -135,7 +135,7 @@ export default function SetGoalsPage() {
 
       // Refresh goals list
       const goalsResponse = await fetch(
-        `http://localhost:8000/get-product-goals/${organization._id}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-product-goals/${organization._id}`
       );
       const goalsData = await goalsResponse.json();
       setGoals(goalsData.product_goals);
@@ -156,7 +156,7 @@ export default function SetGoalsPage() {
   };
 
   return (
-    <div className="h-full space-y-8 p-6">
+    <div className="h-full space-y-8 p-8">
       <div className="flex items-center gap-2">
         <Target className="w-6 h-6 text-indigo-500" />
         <h1 className="text-2xl font-bold">Set Organization Goals</h1>

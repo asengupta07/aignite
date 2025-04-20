@@ -62,7 +62,7 @@ function PendingApplications() {
     const fetchApplications = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/applications/${session?.user?.github_id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/applications/${session?.user?.github_id}`
         );
         const data = await response.json();
         console.log("data", data);
@@ -97,7 +97,7 @@ function PendingApplications() {
   ) => {
     try {
       const response = await fetch(
-        "http://localhost:8000/update-application-status",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/update-application-status`,
         {
           method: "POST",
           headers: {
@@ -117,7 +117,7 @@ function PendingApplications() {
 
       // Refresh applications
       const updatedResponse = await fetch(
-        `http://localhost:8000/applications/${session?.user?.github_id}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/applications/${session?.user?.github_id}`
       );
       const updatedData = await updatedResponse.json();
       // Only show pending applications
@@ -137,7 +137,7 @@ function PendingApplications() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300 mb-4">
+      <h2 className="text-2xl font-semibold text-zinc-700 dark:text-zinc-300 mb-4">
         Pending Applications
       </h2>
       {applications.length === 0 ? (
@@ -160,17 +160,17 @@ function PendingApplications() {
                   />
                 </div>
                 <div>
-                  <p className="font-medium text-zinc-700 dark:text-zinc-300">
+                  <p className="font-medium text-lg text-zinc-700 dark:text-zinc-300">
                     {application.user_name}
                   </p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <p className="text-base text-zinc-500 dark:text-zinc-400">
                     GitHub ID: {application.github_id}
                   </p>
                 </div>
               </div>
 
               <div className="mb-3">
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="block text-base font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Select Role
                 </label>
                 <select
@@ -267,7 +267,7 @@ function ProductGoals() {
     <div>
       <div className="flex items-center gap-2 mb-4">
         <Target className="w-5 h-5 text-indigo-500" />
-        <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
+        <h2 className="text-2xl font-semibold text-zinc-700 dark:text-zinc-300">
           Product Goals
         </h2>
       </div>
@@ -286,10 +286,10 @@ function ProductGoals() {
                 <Circle className="w-5 h-5 text-zinc-400 mt-1" />
               )}
               <div>
-                <h3 className="font-medium text-zinc-700 dark:text-zinc-300">
+                <h3 className="font-medium text-lg text-zinc-700 dark:text-zinc-300">
                   {goal.title}
                 </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                <p className="text-base text-zinc-500 dark:text-zinc-400 mt-1">
                   {goal.description}
                 </p>
                 <div className="mt-2">
@@ -338,7 +338,7 @@ export function DevReports() {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/get-latest-dev-report/${session?.user?.github_id}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-latest-dev-report/${session?.user?.github_id}`
       );
       const data: DevReportResponse = await response.json();
       setReport(data.report);
@@ -360,7 +360,7 @@ export function DevReports() {
       <div className="flex items-center justify-between mb-4">
         <span className="flex items-center gap-2">
           <Code2 className="w-5 h-5 text-indigo-500 mt-1" />
-          <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
+          <h2 className="text-2xl font-semibold text-zinc-700 dark:text-zinc-300">
             Development Report
           </h2>
         </span>
@@ -385,10 +385,10 @@ export function DevReports() {
           {/* Summary */}
           <div className="flex items-start gap-3 p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
             <div>
-              <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              <h3 className="font-medium text-lg text-zinc-700 dark:text-zinc-300 mb-2">
                 Summary
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
+              <p className="text-base text-zinc-600 dark:text-zinc-400">
                 {report.summary}
               </p>
             </div>
@@ -397,10 +397,10 @@ export function DevReports() {
           {/* Changes */}
           {report.changes.length > 0 && (
             <div className="p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
-              <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              <h3 className="font-medium text-lg text-zinc-700 dark:text-zinc-300 mb-2">
                 Recent Changes
               </h3>
-              <ul className="list-disc list-inside space-y-1 text-zinc-600 dark:text-zinc-400">
+              <ul className="list-disc list-inside space-y-1 text-base text-zinc-600 dark:text-zinc-400">
                 {report.changes.map((change, index) => (
                   <li key={index}>{change}</li>
                 ))}
@@ -411,10 +411,10 @@ export function DevReports() {
           {/* Issues */}
           {report.issues.length > 0 && (
             <div className="p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
-              <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              <h3 className="font-medium text-lg text-zinc-700 dark:text-zinc-300 mb-2">
                 Current Issues
               </h3>
-              <ul className="list-disc list-inside space-y-1 text-zinc-600 dark:text-zinc-400">
+              <ul className="list-disc list-inside space-y-1 text-base text-zinc-600 dark:text-zinc-400">
                 {report.issues.map((issue, index) => (
                   <li key={index}>{issue}</li>
                 ))}
@@ -425,10 +425,10 @@ export function DevReports() {
           {/* Suggestions */}
           {report.suggestions.length > 0 && (
             <div className="p-4 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
-              <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              <h3 className="font-medium text-lg text-zinc-700 dark:text-zinc-300 mb-2">
                 Suggestions
               </h3>
-              <ul className="list-disc list-inside space-y-1 text-zinc-600 dark:text-zinc-400">
+              <ul className="list-disc list-inside space-y-1 text-base text-zinc-600 dark:text-zinc-400">
                 {report.suggestions.map((suggestion, index) => (
                   <li key={index}>{suggestion}</li>
                 ))}
@@ -469,20 +469,20 @@ function OrganizationDashboard() {
       try {
         // First get the organization
         const orgResponse = await fetch(
-          `http://localhost:8000/get-organization/${session?.user?.github_id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-organization/${session?.user?.github_id}`
         );
         const orgData = await orgResponse.json();
         const org = orgData.organization;
 
         // Then get the GitHub URL
         const githubResponse = await fetch(
-          `http://localhost:8000/get-github/${session?.user?.github_id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-github/${session?.user?.github_id}`
         );
         const githubData = await githubResponse.json();
 
         // Then get the product goals
         const goalsResponse = await fetch(
-          `http://localhost:8000/get-product-goals/${org._id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-product-goals/${org._id}`
         );
         const goalsData = await goalsResponse.json();
 
@@ -544,10 +544,10 @@ function OrganizationDashboard() {
               )}
             </div>
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-zinc-800 dark:text-zinc-200 mb-2">
+              <h1 className="text-3xl font-bold text-zinc-800 dark:text-zinc-200 mb-2">
                 {organization.name}
               </h1>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-3">
+              <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-3">
                 {organization.description}
               </p>
               <Button
@@ -603,7 +603,7 @@ function OrganizationDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Target className="w-5 h-5 text-indigo-500" />
-              <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
+              <h2 className="text-2xl font-semibold text-zinc-700 dark:text-zinc-300">
                 Product Goals
               </h2>
             </div>
@@ -633,8 +633,10 @@ function OrganizationDashboard() {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-medium">{goal.title}</h3>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                      <h3 className="font-medium text-lg text-zinc-700 dark:text-zinc-300">
+                        {goal.title}
+                      </h3>
+                      <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">
                         {goal.description}
                       </p>
                       <div className="flex flex-wrap gap-2 mt-2">
@@ -706,20 +708,20 @@ function OrganizationDashboard() {
               </div>
               <div className="space-y-6">
                 <div className="p-5 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
-                  <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                  <h3 className="font-medium text-lg text-zinc-700 dark:text-zinc-300 mb-3">
                     Recent Contributions
                   </h3>
-                  <ul className="list-disc list-inside space-y-3 text-zinc-600 dark:text-zinc-400 text-sm">
+                  <ul className="list-disc list-inside space-y-3 text-base text-zinc-600 dark:text-zinc-400">
                     <li>Submitted 3 pull requests this week</li>
                     <li>Resolved 5 issues in the last sprint</li>
                     <li>Contributed to documentation updates</li>
                   </ul>
                 </div>
                 <div className="p-5 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
-                  <h3 className="font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                  <h3 className="font-medium text-lg text-zinc-700 dark:text-zinc-300 mb-3">
                     Your Tasks
                   </h3>
-                  <ul className="list-disc list-inside space-y-3 text-zinc-600 dark:text-zinc-400 text-sm">
+                  <ul className="list-disc list-inside space-y-3 text-base text-zinc-600 dark:text-zinc-400">
                     <li>Review pending PR #142</li>
                     <li>Complete API documentation</li>
                     <li>Prepare for next sprint planning</li>

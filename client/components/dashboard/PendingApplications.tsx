@@ -22,7 +22,7 @@ export function PendingApplications() {
     const fetchApplications = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/applications/${session?.user?.github_id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/applications/${session?.user?.github_id}`
         );
         const data = await response.json();
         setApplications(data.applications || []);
@@ -40,7 +40,7 @@ export function PendingApplications() {
 
   const handleApplicationStatus = async (applicationId: string, status: string) => {
     try {
-      const response = await fetch("http://localhost:8000/update-application-status", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/update-application-status`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,7 +58,7 @@ export function PendingApplications() {
 
       // Refresh applications
       const updatedResponse = await fetch(
-        `http://localhost:8000/applications/${session?.user?.github_id}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/applications/${session?.user?.github_id}`
       );
       const updatedData = await updatedResponse.json();
       setApplications(updatedData.applications || []);

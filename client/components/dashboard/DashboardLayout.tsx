@@ -24,6 +24,11 @@ const adminSidebarItems = [
     href: "/dashboard/set-goals",
   },
   {
+    name: "View Goals",
+    icon: Target,
+    href: "/dashboard/view-goals",
+  },
+  {
     name: "View Progress",
     icon: BarChart,
     href: "/dashboard/view-progress",
@@ -91,7 +96,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const fetchUserRole = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/get-organization/${session?.user?.github_id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-organization/${session?.user?.github_id}`
         );
         const data = await response.json();
         const organization: Organization = data.organization;
@@ -102,7 +107,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         } else {
           // Fetch user's role from organization members
           const membersResponse = await fetch(
-            `http://localhost:8000/organizations/${organization._id}/members`
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/organizations/${organization._id}/members`
           );
           const membersData = await membersResponse.json();
           const userMember = membersData.members.find(
@@ -148,7 +153,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "bg-white dark:bg-zinc-800 shadow-lg transition-all duration-300",
+          "bg-white dark:bg-zinc-800 shadow-lg transition-all duration-300 fixed h-[calc(100vh-4rem)] top-16",
           isCollapsed ? "w-20" : "w-64"
         )}
       >
@@ -187,8 +192,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-6">{children}</div>
+      <div className={cn(
+        "flex-1 overflow-auto",
+        isCollapsed ? "ml-20" : "ml-64"
+      )}>
+        <div className="">{children}</div>
       </div>
     </div>
   );

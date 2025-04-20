@@ -25,7 +25,7 @@ export function DevReports() {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/get-latest-dev-report/${session?.user?.github_id}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-latest-dev-report/${session?.user?.github_id}`
       );
       const data: DevReportResponse = await response.json();
       setReport(data.report);

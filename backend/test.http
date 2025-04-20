@@ -72,3 +72,6 @@ GET http://localhost:8000/get-latest-dev-report/45076467
 GET http://localhost:8000/applications/45076467
 
 GET http://localhost:8000/get-dev-team/6803fa23fe30dd6399f4246d
+
+
+GET http://localhost:8000/analyze-codebase/45076467?query=is%20the%20code%20for%20twilio%20integration%20in%20the%20codebase%20working?

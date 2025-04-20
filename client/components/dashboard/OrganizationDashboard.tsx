@@ -29,7 +29,7 @@ export default function OrganizationDashboard() {
     const fetchOrganization = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/get-organization/${session?.user?.github_id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-organization/${session?.user?.github_id}`
         );
         const data = await response.json();
         setOrganization(data.organization);

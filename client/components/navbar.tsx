@@ -12,7 +12,7 @@ export function Navbar() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <nav className="border-b">
+    <nav className="border-b sticky top-0 z-50 bg-background">
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
         <Link href="/" className="text-xl font-bold">
           IntersectAI

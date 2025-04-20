@@ -32,7 +32,7 @@ export default function ViewGoalsPage() {
       try {
         // First get the organization
         const orgResponse = await fetch(
-          `http://localhost:8000/get-organization/${session?.user?.github_id}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-organization/${session?.user?.github_id}`
         );
         const orgData = await orgResponse.json();
         setOrganization(orgData.organization);
@@ -40,7 +40,7 @@ export default function ViewGoalsPage() {
         // Then get the goals using organization ID
         if (orgData.organization?._id) {
           const goalsResponse = await fetch(
-            `http://localhost:8000/get-product-goals/${orgData.organization._id}`
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-product-goals/${orgData.organization._id}`
           );
           if (!goalsResponse.ok) throw new Error("Failed to fetch goals");
 
@@ -68,7 +68,7 @@ export default function ViewGoalsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex items-center gap-2">
         <Target className="w-6 h-6 text-indigo-500" />
         <h1 className="text-2xl font-bold">Organization Goals</h1>

@@ -28,7 +28,7 @@ export default function JoinOrganizationModal({
         throw new Error("Please sign in to join an organization");
       }
 
-      const response = await fetch("http://localhost:8000/apply-organization", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/apply-organization`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

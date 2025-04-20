@@ -11,6 +11,7 @@ import datetime as dt
 from agents.dev_report import DevReportAgent
 from agents.progress_report import ProgressReportAgent
 from agents.documentation_agent import DocumentationAgent
+from agents.codebase_analyzer import CodebaseAnalyzer
 
 load_dotenv()
 
@@ -362,6 +363,9 @@ async def get_user_commits(org_id: str, github_id: str):
 async def get_user_prs(org_id: str, github_id: str):
     try:
         github_url = mongo_client.get_org_github_url(org_id)
+        if not github_url:
+            raise HTTPException(status_code=404, detail="GitHub URL not found for organization")
+            
         parts = github_url.strip('/').split('/')
         if len(parts) < 2:
             raise HTTPException(status_code=400, detail="Invalid GitHub URL format")
@@ -377,16 +381,21 @@ async def get_user_prs(org_id: str, github_id: str):
             raise HTTPException(status_code=404, detail="User not found")
             
         url = f"https://api.github.com/repos/{owner}/{repo}/pulls"
-        params = {"state": "all", "creator": user["name"]}
+        params = {"state": "all", "author": user["name"]}
         
         response = requests.get(url, headers=headers, params=params)
         if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Failed to fetch PRs from GitHub")
+            error_detail = f"Failed to fetch PRs from GitHub: {response.text}"
+            print(error_detail)
+            raise HTTPException(status_code=response.status_code, detail=error_detail)
             
         prs = response.json()
         return {"pull_requests": prs}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error in get-user-prs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.post("/generate-documentation")
 async def generate_documentation(request: Request):
@@ -419,11 +428,10 @@ async def generate_documentation(request: Request):
             files = commit_data["files"]
             commit_message = commit_data["commit"]["message"]
             
-            # Generate documentation using the agent
             doc_agent = DocumentationAgent()
             documentation = doc_agent.generate_commit_documentation(files, commit_message)
             
-        else:  # PR
+        else:
             url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{item_id}"
             response = requests.get(url, headers=headers)
             if response.status_code != 200:
@@ -431,13 +439,11 @@ async def generate_documentation(request: Request):
                 
             pr_data = response.json()
             
-            # Get the PR diff
             diff_url = pr_data["diff_url"]
             diff_response = requests.get(diff_url)
             if diff_response.status_code != 200:
                 raise HTTPException(status_code=diff_response.status_code, detail="Failed to fetch PR diff")
                 
-            # Generate documentation using the agent
             doc_agent = DocumentationAgent()
             documentation = doc_agent.generate_pr_documentation(pr_data, diff_response.text)
         
@@ -447,6 +453,37 @@ async def generate_documentation(request: Request):
             "metadata": {
                 key: value for key, value in documentation.items() if key != "html_content"
             }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/analyze-codebase/{user_id}")
+async def analyze_codebase(user_id: str, query: str):
+    try:
+        # Get organization and GitHub URL
+        org = mongo_client.get_organization_by_user_id(user_id)
+        if not org:
+            raise HTTPException(status_code=404, detail="User is not affiliated with any organization")
+            
+        org_id = str(org["_id"])
+        github_url = mongo_client.get_org_github_url(org_id)
+        
+        # Parse GitHub URL to get owner and repo
+        parts = github_url.strip('/').split('/')
+        if len(parts) < 2:
+            raise HTTPException(status_code=400, detail="Invalid GitHub URL format")
+        owner, repo = parts[-2], parts[-1]
+        
+        # Initialize analyzer and get results
+        analyzer = CodebaseAnalyzer()
+        results = analyzer.analyze_codebase(owner, repo, query)
+        
+        return {
+            "query": query,
+            "answer": results["answer"],
+            "confidence": results["confidence"],
+            "sources": results["sources"]
         }
         
     except Exception as e:
